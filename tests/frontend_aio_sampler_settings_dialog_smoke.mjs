@@ -538,7 +538,7 @@ function createFixture({
   assert.equal(dialog.title, "Sampler Details");
   assert.equal(
     dialog.subtitle,
-    "Choose one of three sampler paths. Selecting an unavailable path shows its required node pack.",
+    "Choose a sampler path for the selected model family. Unavailable paths show their required node pack.",
   );
   const base = sectionByHeading(dialog, "Base Parameters");
   const sampler = sectionByHeading(dialog, "Sampler Backend");
@@ -986,4 +986,25 @@ for (const testCase of [
   assert.equal(fixture.node.visible.denoise, 0);
 }
 
+
+
+{
+  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily("moss_image") });
+  fixture.openSamplerSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const sampler = sectionByHeading(dialog, "Sampler Backend");
+  assert.deepEqual(controlIn(sampler, "Mode").options.map((option) => option.value), ["comfy_ksampler"]);
+  const mod = sectionByHeading(dialog, "Mod Guidance");
+  assert.ok(mod.querySelectorAll("input, select").every((control) => control.disabled));
+  assert.equal(sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler").classList.contains("hidden"), true);
+  assert.ok(findByText(dialog.body, "text:text.mossSpectrumUnsupported"));
+  controlIn(sectionByHeading(dialog, "Base Parameters"), "CFG").value = "3.2";
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_family, "moss_image");
+  assert.equal(fixture.node.settings.sampler.cfg, 3.2);
+  assert.equal(fixture.node.settings.sampler.spectrum.enabled, false);
+  assert.equal(fixture.node.settings.sampler.dit_corrections.enabled, false);
+  assert.equal(fixture.node.settings.mod_guidance.mode, "disabled");
+}
 console.log("AiO Sampler settings dialog smoke passed.");

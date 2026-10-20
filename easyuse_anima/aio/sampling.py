@@ -20,6 +20,7 @@ from ..prompt.conditioning import (
 from ..seed.reservation import SEED_CONTROL_FIXED
 from .generation_defaults import AIO_SPECIAL_SEEDS
 from .generation_normalization import MAX_SEED, _normalize_aio_seed
+from .model_profiles import aio_model_profile
 
 
 def _missing_host_helper(name: str):
@@ -73,6 +74,19 @@ def _generate_empty_latent_with_comfy(width: int, height: int):
     values = _node_output_tuple(result)
     if not values:
         raise RuntimeError("[EasyUseAnima] EmptyLatentImage returned no LATENT.")
+    return values[0]
+
+
+def _generate_empty_model_latent_with_comfy(width: int, height: int, *, model_family: str):
+    profile = aio_model_profile(model_family)
+    latent_cls = _find_comfy_node_class(profile.latent_node)
+    if latent_cls is None:
+        raise RuntimeError(
+            f"[EasyUseAnima] {profile.name} requires ComfyUI with {profile.latent_node} (tested v0.42.1)."
+        )
+    values = _node_output_tuple(latent_cls.execute(width, height, batch_size=1))
+    if not values:
+        raise RuntimeError(f"[EasyUseAnima] {profile.latent_node} returned no LATENT.")
     return values[0]
 
 

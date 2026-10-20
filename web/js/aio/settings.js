@@ -10,7 +10,9 @@ export const AIO_GENERATION_STAGE_IDS = ["first_pass", "highres", "detailer", "u
 
 export const AIO_DEFAULT_GENERATION_SETTINGS = {
   schema: "easyuse_anima_aio_generation_settings",
-  version: 4,
+  version: 5,
+  model_family: "anima",
+  model_settings: {},
   mode: "txt2img",
   sampler: {
     backend: "comfy_ksampler",
@@ -464,6 +466,21 @@ export function aioCloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+export function aioGenerationDefaultsForFamily(family = "anima") {
+  const defaults = aioCloneJson(AIO_DEFAULT_GENERATION_SETTINGS);
+  if (family === "moss_image") {
+    defaults.model_family = family;
+    defaults.sampler.steps = 25;
+    defaults.sampler.cfg = 2.5;
+    defaults.model_patches.aura_flow.shift = 5;
+    defaults.mod_guidance.mode = "disabled";
+    defaults.artist_mix.mode = "off";
+    defaults.detailer.face.spectrum.enabled = false;
+    defaults.detailer.eye.spectrum.enabled = false;
+  }
+  return defaults;
+}
+
 export function aioMigrateGenerationSettingsVersion(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return value;
@@ -519,6 +536,14 @@ export function aioMigrateGenerationSettingsVersion(value) {
       );
     }
     migrated.version = 4;
+  }
+  if (
+    migrated.schema === AIO_DEFAULT_GENERATION_SETTINGS.schema
+    && migrated.version === 4
+  ) {
+    migrated.model_family ??= "anima";
+    migrated.model_settings ??= {};
+    migrated.version = 5;
   }
   return migrated;
 }
@@ -617,7 +642,12 @@ export function aioParseSettingsValue(rawValue, defaults) {
     const incoming = defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGenerationSettingsVersion(rawParsed)
       : rawParsed;
-    const parsed = aioMergeDefaults(defaults, incoming);
+    const parsed = aioMergeDefaults(
+      defaults === AIO_DEFAULT_GENERATION_SETTINGS
+        ? aioGenerationDefaultsForFamily(incoming?.model_family)
+        : defaults,
+      incoming,
+    );
     return defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGeneratorPostprocessSettings(parsed)
       : parsed;
@@ -680,7 +710,7 @@ export function aioNormalizeGeneratorPreviewSettings(settings) {
 
 export function aioSettingsToCompactJson(settings) {
   const next = aioMergeDefaults(
-    AIO_DEFAULT_GENERATION_SETTINGS,
+    aioGenerationDefaultsForFamily(settings?.model_family),
     aioMigrateGenerationSettingsVersion(settings),
   );
   delete next.save?.filename_prefix;

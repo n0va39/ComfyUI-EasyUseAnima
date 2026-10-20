@@ -25,6 +25,7 @@ from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
 from easyuse_anima.aio.negpip import NEGPIP_MODES
+from easyuse_anima.aio.model_profiles import AIO_MODEL_PROFILES
 from easyuse_anima.common import values as common_values
 from easyuse_anima.image import scaling as image_scaling
 from easyuse_anima.nodes import aio_nodes
@@ -37,12 +38,12 @@ from tests.comfy_host_fakes import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v4.json"
+MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v5.json"
 MANIFEST_REPOSITORY_PATH = MANIFEST_PATH.relative_to(ROOT).as_posix()
 FRONTEND_SETTINGS_PATH = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WORKFLOW_0_5_2_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json"
 SURFACE_COVERAGE_PATH = (
-    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v4.json"
+    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v5.json"
 )
 REQUIRED_SETTING_SURFACES = (
     "python_default",
@@ -402,6 +403,7 @@ def _deterministic_capabilities(
 
 def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...]]:
     choices = {
+        ("model_family",): tuple(AIO_MODEL_PROFILES),
         ("mode",): ("txt2img", "img2img", "inpaint"),
         ("sampler", "backend"): (
             "comfy_ksampler",
@@ -463,6 +465,8 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
 
 
 def _runtime_static_enum_choices(path: tuple[str, ...]) -> tuple[str, ...]:
+    if path == ("model_family",):
+        return tuple(AIO_MODEL_PROFILES)
     if path == ("mod_guidance", "profile"):
         return tuple(ANIMA_MOD_GUIDANCE_PROFILES)
 
@@ -487,6 +491,26 @@ def _runtime_static_enum_choices(path: tuple[str, ...]) -> tuple[str, ...]:
 
 
 class AIOGenerationSettingsManifestTests(unittest.TestCase):
+    def test_model_snapshots_round_trip_without_overriding_active_settings(self):
+        source = {
+            "model_family": "moss_image",
+            "sampler": {"steps": 31, "cfg": 4.0},
+            "model_settings": {
+                "moss_image": {"sampler": {"steps": 99, "cfg": 9.0}},
+                "future_family": {"extension": [{"keep": True}]},
+            },
+        }
+        before = copy.deepcopy(source)
+        with _deterministic_capabilities():
+            normalized = generation_normalization._normalize_aio_generation_settings(source)
+        typed = _aio_generation_config_from_dict(normalized).to_dict()
+        self.assertEqual(typed["model_family"], "moss_image")
+        self.assertEqual(typed["sampler"]["steps"], 31)
+        self.assertEqual(typed["sampler"]["cfg"], 4.0)
+        self.assertEqual(typed["model_settings"], before["model_settings"])
+        typed["model_settings"]["future_family"]["extension"][0]["keep"] = False
+        self.assertEqual(source, before)
+
     def test_manifest_default_matches_python_runtime_default(self):
         manifest = _manifest()
 
@@ -569,7 +593,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             coverage["schema"],
             "easyuse_anima_aio_generation_settings_surface_coverage",
         )
-        self.assertEqual(coverage["version"], 4)
+        self.assertEqual(coverage["version"], 5)
         self.assertEqual(coverage["manifest"], MANIFEST_REPOSITORY_PATH)
         self.assertEqual(
             [group["paths"][0] for group in coverage["groups"]],
@@ -712,10 +736,16 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             for path, contract in enum_contracts.items():
                 default = _get_path(defaults, path)
                 with self.subTest(path="/" + "/".join(path), rule="invalid"):
-                    normalized = generation_normalization._normalize_aio_generation_settings(
-                        _payload_with(path, "__invalid_manifest_choice__")
-                    )
-                    self.assertEqual(_get_path(normalized, path), default)
+                    if path == ("model_family",):
+                        with self.assertRaisesRegex(ValueError, "Unsupported AiO model family"):
+                            generation_normalization._normalize_aio_generation_settings(
+                                _payload_with(path, "__invalid_manifest_choice__")
+                            )
+                    else:
+                        normalized = generation_normalization._normalize_aio_generation_settings(
+                            _payload_with(path, "__invalid_manifest_choice__")
+                        )
+                        self.assertEqual(_get_path(normalized, path), default)
 
                 for member in contract["enum"]:
                     with self.subTest(path="/" + "/".join(path), rule="round-trip", member=member):
@@ -1040,6 +1070,14 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                     "owner": "easyuse_anima.aio.generation_migrations",
                     "mode": "pure-in-memory",
                     "missing_sage_stage_scope": "legacy-all-sampling-stages",
+                },
+                {
+                    "from": 4,
+                    "to": 5,
+                    "owner": "easyuse_anima.aio.generation_migrations",
+                    "mode": "pure-in-memory",
+                    "missing_model_family": "anima",
+                    "missing_model_settings": {},
                 },
             ],
         )

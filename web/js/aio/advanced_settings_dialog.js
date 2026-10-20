@@ -885,6 +885,16 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshSageStageScope();
       refreshSageDetails();
       refreshTorchDetails();
+      if (settings.model_family === "moss_image") {
+        for (const section of [conditioning, dave, safePag, kj, artistMix]) {
+          for (const control of section.querySelectorAll("input, select, textarea, button")) {
+            control.disabled = true;
+            control.title = aioText("text.mossUnsupported");
+          }
+        }
+        modelWarning.hidden = false;
+        modelWarning.textContent = aioText("text.mossUnsupported");
+      }
     };
     const guardToggle = (control, dependencyKey, backend) => {
       if (control.checked && !optionalDependencyAvailable(dependencyKey)) {

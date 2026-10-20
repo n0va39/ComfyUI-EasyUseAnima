@@ -446,7 +446,9 @@
         "upscale_model_name": "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"
       }
     },
-    "version": 4
+    "version": 5,
+    "model_family": "anima",
+    "model_settings": {}
   },
   "serialized_generation_settings": {
     "artist_mix": {

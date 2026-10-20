@@ -34,6 +34,7 @@ from .generation_defaults import (
 )
 from .generation_defaults import AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS
 from .generation_migrations import migrate_aio_generation_settings
+from .model_profiles import aio_model_defaults
 from .generation_normalization_core import (
     merge_versioned_settings as _core_merge_versioned_settings,
 )
@@ -199,9 +200,11 @@ def _normalize_aio_dit_corrections_settings(
 
 
 def _normalize_aio_generation_settings(value) -> dict[str, Any]:
+    incoming = _json_object(value)
+    family = incoming.get("model_family", "anima")
     settings = _merge_versioned_settings(
-        AIO_GENERATION_DEFAULT_SETTINGS,
-        _migrate_supported_aio_generation_settings(value),
+        aio_model_defaults(AIO_GENERATION_DEFAULT_SETTINGS, family),
+        _migrate_supported_aio_generation_settings(incoming),
     )
     _core_normalize_sampler_settings(
         settings,

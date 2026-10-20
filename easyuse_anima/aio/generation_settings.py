@@ -22,7 +22,7 @@ from .generation_migrations import (
 )
 from .generation_output import AIOGenerationPreviewConfig, AIOGenerationSaveConfig
 from .generation_sampling import AIOGenerationSamplerConfig
-from .generation_values import ObjectState, expect_int, expect_str, required
+from .generation_values import ObjectState, expect_int, expect_str, expect_object, required
 from .negpip import AIOGenerationNegPipConfig
 
 AIOGenerationSettingsNormalizer: TypeAlias = Callable[
@@ -37,6 +37,8 @@ class AIOGenerationConfig:
     schema: str
     version: int
     mode: str
+    model_family: str
+    model_settings: ObjectState
     sampler: AIOGenerationSamplerConfig
     negpip: AIOGenerationNegPipConfig
     model_patches: AIOGenerationModelPatchesConfig
@@ -52,7 +54,7 @@ class AIOGenerationConfig:
     @classmethod
     def from_dict(cls, source: Mapping[str, object]) -> AIOGenerationConfig:
         known = (
-            "schema", "version", "mode", "sampler", "negpip", "model_patches", "mod_guidance",
+            "schema", "version", "mode", "model_family", "model_settings", "sampler", "negpip", "model_patches", "mod_guidance",
             "artist_mix", "highres", "upscale", "postprocess", "detailer", "save", "preview",
         )
         return cls(
@@ -60,6 +62,10 @@ class AIOGenerationConfig:
             schema=expect_str(required(source, "schema"), "schema"),
             version=expect_int(required(source, "version"), "version"),
             mode=expect_str(required(source, "mode"), "mode"),
+            model_family=expect_str(required(source, "model_family"), "model_family"),
+            model_settings=ObjectState.from_source(
+                expect_object(required(source, "model_settings"), "model_settings"), (),
+            ),
             sampler=AIOGenerationSamplerConfig.from_value(required(source, "sampler")),
             negpip=AIOGenerationNegPipConfig.from_value(required(source, "negpip")),
             model_patches=AIOGenerationModelPatchesConfig.from_value(required(source, "model_patches")),
@@ -76,6 +82,8 @@ class AIOGenerationConfig:
     def to_dict(self) -> dict[str, object]:
         return self.state.compose({
             "schema": self.schema, "version": self.version, "mode": self.mode,
+            "model_family": self.model_family,
+            "model_settings": self.model_settings.compose({}),
             "sampler": self.sampler.to_dict(),
             "negpip": self.negpip.to_dict(),
             "model_patches": self.model_patches.to_dict(),

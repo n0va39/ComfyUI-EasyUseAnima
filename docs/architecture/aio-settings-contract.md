@@ -1,7 +1,7 @@
-# AiO generation settings v2 계약
+# AiO generation settings v5 계약
 
-이 문서는 `easyuse_anima_aio_generation_settings` v2의 정적 계약과 소유 경계를 설명한다. 현재 기준 manifest는
-`easyuse_anima/aio/schemas/generation_settings.v2.json`이며 v1 manifest는 migration 입력 계약으로 보존한다.
+현재 기준 manifest는 `easyuse_anima/aio/schemas/generation_settings.v5.json`이다.
+v1–v4 manifest는 migration 입력 계약으로 보존한다. 아래 기존 stage-scope 기록은 해당 도입 시점의 계약이다.
 
 기준 manifest는 [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 C168-01 Contract PR에서
 도입했다. C168-02는 v0.5.2 release workflow에 저장된 AiO generation settings 입력과 normalized
@@ -31,6 +31,17 @@ generator/codegen/typed model을 추가하거나 특정 generator와의 호환�
 execution은 기존 코드다.
 
 ## 정적 field 정책
+
+v5의 `model_family`는 `anima` 또는 `moss_image`다. 생략된 legacy 입력은 Anima로
+처리하며 알 수 없는 계열은 오류로 거부한다. `model_settings`는 계열별 비활성
+튜닝 snapshot을 보관하는 JSON object다. 실행은 항상 최상위의 활성 설정만 사용한다.
+bank 변경은 first-pass cache key에 포함하지 않으며, 활성 계열은 cache identity에 포함한다.
+UI의 명시적 계열 전환만 bank를 저장/복원한다. sampler seed와 seed-after-generate,
+save, preview, postprocess는 공유하고 모델 전환으로 덮어쓰지 않는다.
+v4→v5 migration은 기존 값에 손대지 않고 `model_family=anima`, `model_settings={}`를
+추가한다. 부분 MOSS 입력에는 해당 계열 기본값을 채우되 명시적으로 저장된 값을 보존한다.
+새 계열 추가는 `aio/model_profiles.py`의 프로필·기능 검증과 frontend의 대응 프로필,
+latent 계약, 실제 host 검증을 함께 확장한다.
 
 정규화 이후의 root는 object이며 다음 section을 갖는다.
 

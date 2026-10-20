@@ -273,6 +273,11 @@ def _load_aio_resources_from_input_context(context: dict[str, Any]):
             + ", ".join(missing)
         )
 
+    if clip_type == "moss_image" and clip_type not in _comfy_clip_loader_types():
+        raise RuntimeError(
+            "[EasyUseAnima] This ComfyUI does not support CLIP type moss_image. "
+            "Update ComfyUI to a MOSS-capable stable release (tested v0.42.1)."
+        )
     model = _load_diffusion_model_with_comfy(
         unet_name,
         str(

@@ -99,11 +99,11 @@ function collectCoercionReferences(value, output = new Set()) {
 
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 const generationManifest = JSON.parse(readFileSync(
-  new URL("../easyuse_anima/aio/schemas/generation_settings.v4.json", import.meta.url),
+  new URL("../easyuse_anima/aio/schemas/generation_settings.v5.json", import.meta.url),
   "utf8",
 ));
 const generationSurfaceCoverage = JSON.parse(readFileSync(
-  new URL("./fixtures/aio_generation_settings_surface_coverage.v4.json", import.meta.url),
+  new URL("./fixtures/aio_generation_settings_surface_coverage.v5.json", import.meta.url),
   "utf8",
 ));
 const aioRuntimeSource = readFileSync(
@@ -148,7 +148,7 @@ assertJsonEqual(
 );
 assert(
   AIO_DEFAULT_GENERATION_SETTINGS.schema === "easyuse_anima_aio_generation_settings"
-    && AIO_DEFAULT_GENERATION_SETTINGS.version === 4
+    && AIO_DEFAULT_GENERATION_SETTINGS.version === 5
     && AIO_DEFAULT_GENERATION_SETTINGS.mode === "txt2img",
   "AiO generation settings must keep their versioned schema",
 );
@@ -448,7 +448,7 @@ const migratedLegacyGeneration = aioMigrateGenerationSettingsVersion(legacyV1Gen
 assert(
   migratedLegacyGeneration !== legacyV1Generation
     && legacyV1Generation.version === 1
-    && migratedLegacyGeneration.version === 4,
+    && migratedLegacyGeneration.version === 5,
   "Generation version migration must clone and leave the saved v1 object unchanged",
 );
 assertJsonEqual(
@@ -461,9 +461,9 @@ const parsedLegacyV1Generation = aioParseSettingsValue(
   AIO_DEFAULT_GENERATION_SETTINGS,
 );
 assert(
-  parsedLegacyV1Generation.version === 4
+  parsedLegacyV1Generation.version === 5
     && parsedLegacyV1Generation.profile_extension.preserve === true,
-  "Frontend parsing must apply the v1-to-v4 migration chain and preserve extensions",
+  "Frontend parsing must apply the v1-to-v5 migration chain and preserve extensions",
 );
 assertJsonEqual(
   parsedLegacyV1Generation.model_patches.dave.stage_scope,
@@ -507,7 +507,7 @@ const migratedLegacyV2SafePag = aioMigrateGenerationSettingsVersion(legacyV2Safe
 assert(
   migratedLegacyV2SafePag !== legacyV2SafePag
     && legacyV2SafePag.version === 2
-    && migratedLegacyV2SafePag.version === 4,
+    && migratedLegacyV2SafePag.version === 5,
   "Safe PAG version migration must clone and leave the saved v2 object unchanged",
 );
 assertJsonEqual(
@@ -546,9 +546,9 @@ const migratedLegacyV3Sage = aioMigrateGenerationSettingsVersion(legacyV3Sage);
 assert(
   migratedLegacyV3Sage !== legacyV3Sage
     && legacyV3Sage.version === 3
-    && migratedLegacyV3Sage.version === 4
+    && migratedLegacyV3Sage.version === 5
     && migratedLegacyV3Sage.profile_extension.preserve_sage === true,
-  "SageAttention version migration must clone, preserve extensions, and advance to v4",
+  "SageAttention version migration must clone, preserve extensions, and advance to v5",
 );
 assertJsonEqual(
   migratedLegacyV3Sage.model_patches.kj.sage_stage_scope,
@@ -569,7 +569,7 @@ const parsedCustomV4Sage = aioParseSettingsValue(JSON.stringify({
 assertJsonEqual(
   parsedCustomV4Sage.model_patches.kj.sage_stage_scope,
   customV4SageScope,
-  "Explicit v4 SageAttention stage scope must round-trip without migration",
+  "Explicit v4 SageAttention stage scope must round-trip through the v4-to-v5 migration",
 );
 const parsedLegacyGeneration = aioParseSettingsValue(JSON.stringify({
   upscale: {
@@ -586,6 +586,43 @@ assert(
     && parsedLegacyGeneration.postprocess.fit.mode === "megapixels"
     && parsedLegacyGeneration.postprocess.fit.max_megapixels === 9,
   "Parsing with the canonical generation defaults must run legacy fit migration",
+);
+
+const legacyFamilySettings = {
+  schema: "easyuse_anima_aio_generation_settings",
+  version: 4,
+  sampler: { steps: 41, cfg: 6.5 },
+};
+const migratedFamilySettings = aioMigrateGenerationSettingsVersion(legacyFamilySettings);
+assert(
+  migratedFamilySettings.version === 5
+    && migratedFamilySettings.model_family === "anima"
+    && legacyFamilySettings.version === 4
+    && !Object.prototype.hasOwnProperty.call(legacyFamilySettings, "model_family"),
+  "The v4-to-v5 migration must preserve saved Anima tuning and leave the source unchanged",
+);
+assertJsonEqual(migratedFamilySettings.model_settings, {}, "Legacy profiles start without inactive model snapshots");
+assertJsonEqual(migratedFamilySettings.sampler, legacyFamilySettings.sampler, "Migration must preserve explicit sampler tuning");
+const modelSnapshots = {
+  moss_image: { sampler: { steps: 99, cfg: 9 } },
+  future_family: { extension: [{ keep: true }] },
+};
+const parsedMossSettings = aioParseSettingsValue(JSON.stringify({
+  model_family: "moss_image",
+  sampler: { steps: 31, cfg: 4 },
+  model_settings: modelSnapshots,
+}), AIO_DEFAULT_GENERATION_SETTINGS);
+assert(
+  parsedMossSettings.model_family === "moss_image"
+    && parsedMossSettings.sampler.steps === 31
+    && parsedMossSettings.sampler.cfg === 4,
+  "Inactive model snapshots must not override the active top-level sampler settings",
+);
+assertJsonEqual(parsedMossSettings.model_settings, modelSnapshots, "Future model snapshots must round-trip without normalization");
+assertJsonEqual(
+  JSON.parse(aioSettingsToCompactJson(parsedMossSettings)).model_settings,
+  modelSnapshots,
+  "Compact serialization must preserve inactive snapshots",
 );
 
 const legacySettings = aioMergeDefaults(AIO_DEFAULT_GENERATION_SETTINGS, {
@@ -825,7 +862,7 @@ assert(
 );
 assert(
   generationManifest.policies.persistence.write_on_read === false
-    && generationManifest.policies.version_migrations.length === 3
+    && generationManifest.policies.version_migrations.length === 4
     && generationManifest.policies.version_migrations[0].from === 1
     && generationManifest.policies.version_migrations[0].to === 2
     && generationManifest.policies.version_migrations[1].from === 2
@@ -834,8 +871,11 @@ assert(
     && generationManifest.policies.version_migrations[2].to === 4
     && generationManifest.policies.version_migrations[0].mode === "pure-in-memory"
     && generationManifest.policies.version_migrations[1].mode === "pure-in-memory"
-    && generationManifest.policies.version_migrations[2].mode === "pure-in-memory",
-  "The v4 contract must keep no-write-on-read and consecutive pure migrations",
+    && generationManifest.policies.version_migrations[2].mode === "pure-in-memory"
+    && generationManifest.policies.version_migrations[3].from === 4
+    && generationManifest.policies.version_migrations[3].to === 5
+    && generationManifest.policies.version_migrations[3].mode === "pure-in-memory",
+  "The v5 contract must keep no-write-on-read and consecutive pure migrations",
 );
 assertJsonEqual(
   generationManifest.policies.model_patch_contract,
@@ -874,7 +914,7 @@ assertJsonEqual(
       },
     },
   },
-  "The v4 manifest must freeze stage ids, precedence revision, cutover, and scope owners",
+  "The v5 manifest must freeze stage ids, precedence revision, cutover, and scope owners",
 );
 
 console.log("AiO settings core smoke passed.");

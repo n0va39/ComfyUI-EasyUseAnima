@@ -1,5 +1,22 @@
 # Anima AiO Generator
 
+Select **Model family** to switch between Anima and MOSS Image. Sampling, patches,
+and later generation stages are saved and restored per family. Seed, output paths,
+preview, and postprocessing remain shared. Existing workflows open as Anima.
+
+MOSS requires a core MOSS-capable ComfyUI build (validation target v0.42.1).
+Select a MOSS diffusion model, Qwen3.5 9B text encoder, CLIP type `moss_image`,
+and FLUX.2 VAE in Input. Defaults: 25 steps, CFG 2.5, er_sde, simple, shift 5.
+Width and height must be multiples of 16. Family selection does not download or
+replace the selected resource files.
+
+Initial MOSS scope: basic txt2img, core LoRA loading, preview, postprocessing, and
+saving. Anima Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ patches, AiO
+hooks, Highres/Detailer/Upscale are unavailable and rejected before execution.
+Upstream Spectrum 2.12.1's `MossSpectrumKSampler` targets a different MOSS loader
+and time-embedding contract, so it is not used for native core MOSS. Existing
+Anima Spectrum support is preserved.
+
 Category: `EasyUse Anima/AiO`
 
 ![Anima AiO Generator](../images/aio-generator-node.png)

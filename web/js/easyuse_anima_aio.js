@@ -24,6 +24,7 @@ import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
+import { aioSwitchModelFamily } from "./aio/model_profiles.js";
 import { createAioSeedTransaction } from "./aio/executed_seed_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
@@ -115,6 +116,7 @@ import {
   aioNormalizeSeedControl as normalizeSeedControl,
   aioNormalizeSeedValue as normalizeSeedValue,
   aioParseSettingsValue,
+  aioGenerationDefaultsForFamily,
   aioSettingsToCompactJson as settingsToCompactJson,
 } from "./aio/settings.js";
 
@@ -190,6 +192,10 @@ const AIO_TEXT = {
     "label.shift": "Shift",
     "label.denoise": "Denoise",
     "label.sampler": "Sampler",
+    "label.modelFamily": "Model family",
+    "text.mossUnsupported": "MOSS Image currently supports first-pass KSampler only. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ optimizations, Spectrum / SPD, corrections, hooks and later stages are unavailable.",
+    "text.mossSpectrumUnsupported": "Spectrum is unavailable for native ComfyUI MOSS Image models: the external MOSS Spectrum node expects a different model structure and timestep scale.",
+    "text.mossRequirements": "MOSS Image: select resources on the Input node — CLIP type moss_image, Qwen3.5-9B text encoder and FLUX.2 VAE. First pass only; Anima guidance, Artist Mix, NegPip, DAVE, Safe PAG and later stages are unavailable.",
     "label.scheduler": "Scheduler",
     "label.enabled": "Enabled",
     "label.info": "More information",
@@ -546,6 +552,10 @@ const AIO_TEXT = {
     "label.shift": "시프트",
     "label.denoise": "디노이즈",
     "label.sampler": "샘플러",
+    "label.modelFamily": "모델 계열",
+    "text.mossUnsupported": "MOSS Image는 현재 1차 KSampler 생성만 지원합니다. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ 최적화, Spectrum / SPD, corrections, hooks 및 후속 단계는 지원하지 않습니다.",
+    "text.mossSpectrumUnsupported": "ComfyUI 네이티브 MOSS Image에는 Spectrum을 지원하지 않습니다. 외부 MOSS Spectrum 노드가 기대하는 모델 구조와 시간 스케일이 다릅니다.",
+    "text.mossRequirements": "MOSS Image: Input 노드에서 CLIP 유형 moss_image, Qwen3.5-9B 텍스트 인코더, FLUX.2 VAE를 선택하세요. 1차 생성만 지원하며 Anima guidance, Artist Mix, NegPip, DAVE, Safe PAG 및 후속 단계는 지원하지 않습니다.",
     "label.scheduler": "스케줄러",
     "label.enabled": "활성화",
     "label.info": "추가 정보",
@@ -902,6 +912,10 @@ const AIO_TEXT = {
     "label.shift": "シフト",
     "label.denoise": "デノイズ",
     "label.sampler": "サンプラー",
+    "label.modelFamily": "モデル系統",
+    "text.mossUnsupported": "MOSS Image は first-pass KSampler のみ対応。Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks、後続ステージは未対応です。",
+    "text.mossSpectrumUnsupported": "Native ComfyUI MOSS Image は Spectrum 未対応です。外部 MOSS Spectrum ノードは異なるモデル構造と timestep scale を必要とします。",
+    "text.mossRequirements": "MOSS Image: Input で CLIP type moss_image、Qwen3.5-9B text encoder、FLUX.2 VAE を選択してください。First pass のみ。Anima guidance、Artist Mix、NegPip、DAVE、Safe PAG、後続ステージは未対応です。",
     "label.scheduler": "スケジューラー",
     "label.enabled": "有効",
     "label.info": "詳細情報",
@@ -1017,6 +1031,10 @@ const AIO_TEXT = {
     "label.shift": "Shift",
     "label.denoise": "降噪",
     "label.sampler": "采样器",
+    "label.modelFamily": "模型系列",
+    "text.mossUnsupported": "MOSS Image 目前仅支持首次 KSampler 生成。不支持 Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks 和后续阶段。",
+    "text.mossSpectrumUnsupported": "ComfyUI 原生 MOSS Image 不支持 Spectrum。外部 MOSS Spectrum 节点要求不同的模型结构和时间步缩放。",
+    "text.mossRequirements": "MOSS Image：请在 Input 节点选择 CLIP type moss_image、Qwen3.5-9B 文本编码器和 FLUX.2 VAE。仅支持首次生成；不支持 Anima guidance、Artist Mix、NegPip、DAVE、Safe PAG 和后续阶段。",
     "label.scheduler": "调度器",
     "label.enabled": "启用",
     "label.info": "更多信息",
@@ -4261,6 +4279,9 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
     getSettings: generatorSettings,
     applyVisibleSettings: applyVisibleGeneratorSettings,
     writeSettings: writeGeneratorSettingsFromState,
+    switchModelFamily: (settings, family) => aioSwitchModelFamily(
+      settings, family, aioGenerationDefaultsForFamily,
+    ),
     syncSettingsFromVisible: syncGeneratorSettingsFromVisible,
     widgetValue,
     widgetOptions,

@@ -1445,4 +1445,27 @@ function torchRecommendationControls(dialog) {
   assert.equal(fixture.writes.length, 0, "A late result after Cancel must be ignored");
 }
 
+
+
+{
+  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily("moss_image"), deferLoads: true });
+  fixture.openAdvancedSettings(fixture.node);
+  fixture.resolveLoads();
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  for (const label of ["Conditioning", "Artist Mix"]) {
+    assert.ok(sectionByHeading(dialog.body, label).querySelectorAll("input, select, button").every((control) => control.disabled));
+  }
+  const patches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const shift = controlIn(patches, "AuraFlow shift");
+  assert.equal(shift.disabled, false);
+  for (const control of patches.querySelectorAll("input, select, button")) {
+    if (control !== shift) assert.equal(control.disabled, true, "MOSS unsupported patch controls stay locked after dependency resolution");
+  }
+  shift.value = "6";
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_patches.aura_flow.shift, 6);
+  assert.equal(fixture.node.settings.artist_mix.mode, "off");
+  assert.equal(fixture.node.settings.negpip.mode, "off");
+}
 console.log("AiO Advanced settings dialog smoke passed.");

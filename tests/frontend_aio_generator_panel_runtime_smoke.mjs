@@ -52,6 +52,7 @@ function listenerCapture(options = false) {
 
 const panelModule = await import(dataModule("../web/js/aio/generator_panel_runtime.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const modelProfilesModule = await import(dataModule("../web/js/aio/model_profiles.js"));
 const numericLimits = {
   samplerSteps: { min: 1, max: 10000 },
   samplerCfg: { min: 0, max: 100 },
@@ -380,6 +381,7 @@ function createFixture() {
   };
 
   const nodeAdapter = {
+    switchModelFamily: (settings, family) => modelProfilesModule.aioSwitchModelFamily(settings, family, settingsModule.aioGenerationDefaultsForFamily),
     getSettings(node) {
       dependencyCalls += 1;
       trace.push("get-settings");
@@ -1954,4 +1956,34 @@ assert.equal(
   "easyuse-anima-aio-node-preview-placeholder",
 );
 assert.equal(findByClass(reactivatedPanel, "easyuse-anima-aio-node-main") != null, true);
+
+
+{
+  const fixture = createFixture();
+  const node = createOwnerTestNode(fixture, fixture.defaultSettings);
+  node.settings.sampler.cfg = 7.5;
+  node.settings.sampler.seed = "18446744073709551615";
+  fixture.runtime.ensurePanel(node);
+  const panel = node.__easyuseAnimaGeneratorPanelEl;
+  const selector = findByAttribute(panel, "data-aio-model-family", "");
+  assert.ok(selector);
+  selector.value = "moss_image";
+  selector.emit("change");
+  assert.equal(node.settings.model_family, "moss_image");
+  assert.equal(node.settings.sampler.cfg, 2.5);
+  assert.equal(node.visibleSettings.sampler.steps, 25);
+  assert.equal(node.settings.sampler.seed, "18446744073709551615");
+  assert.equal(findByAttribute(panel, "data-aio-model-family", ""), selector, "native control stays mounted throughout change event");
+  while (fixture.animationFrames.length) fixture.animationFrames.shift()();
+  assert.ok(findByAttribute(panel, "data-aio-model-requirements", ""));
+  for (const key of ["highres.enabled", "detailer.enabled", "upscale.enabled"]) {
+    assert.equal(findByAttribute(panel, "data-aio-focus-key", key).disabled, true, key);
+  }
+  const nextSelector = findByAttribute(panel, "data-aio-model-family", "");
+  nextSelector.value = "anima";
+  nextSelector.emit("change");
+  assert.equal(node.settings.sampler.cfg, 7.5);
+  assert.equal(node.visibleSettings.sampler.cfg, 7.5);
+  fixture.runtime.disposePanel(node);
+}
 console.log("AiO generator panel runtime smoke passed.");

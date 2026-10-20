@@ -66,6 +66,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(node: any) => any} getSettings
  * @property {(node: any, settings: any) => void} applyVisibleSettings
  * @property {(node: any, settings: any, markDirty?: boolean) => void} writeSettings
+ * @property {(settings: any, family: string) => any} switchModelFamily
  * @property {(node: any) => void} syncSettingsFromVisible
  * @property {(node: any, name: string, fallback: any) => any} widgetValue
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
@@ -180,6 +181,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     getSettings: generatorSettings,
     applyVisibleSettings: applyVisibleGeneratorSettings,
     writeSettings: writeGeneratorSettingsFromState,
+    switchModelFamily,
     syncSettingsFromVisible: syncGeneratorSettingsFromVisible,
     widgetValue,
     widgetOptions,
@@ -1520,6 +1522,28 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const samplerGrid = document.createElement("div");
     samplerGrid.className = "easyuse-anima-aio-node-sampler-grid";
 
+    const modelFamily = selectInput([
+      { value: "anima", label: "Anima" },
+      { value: "moss_image", label: "MOSS Image" },
+    ], settings.model_family || "anima");
+    modelFamily.setAttribute("data-aio-model-family", "");
+    modelFamily.setAttribute("data-aio-focus-key", "model_family");
+    modelFamily.addEventListener("change", () => {
+      const next = switchModelFamily(generatorSettings(node), modelFamily.value);
+      applyVisibleGeneratorSettings(node, next);
+      writeGeneratorSettingsFromState(node, next);
+      // Preserve the active native select until its change event has completed.
+      scheduleGeneratorPanelFrame(node, "modelFamily", () => renderGeneratorPanel(node));
+    });
+    samplerGrid.append(createNodeField(aioText("label.modelFamily"), modelFamily, "wide"));
+    if (settings.model_family === "moss_image") {
+      const modelInfo = document.createElement("div");
+      modelInfo.className = "easyuse-anima-aio-warning wide";
+      modelInfo.setAttribute("data-aio-model-requirements", "");
+      modelInfo.textContent = aioText("text.mossRequirements");
+      samplerGrid.append(modelInfo);
+    }
+
     const seedBlock = document.createElement("div");
     const seedInput = createDomNumberControl(node, "seed", settings.sampler.seed);
     seedInput.setAttribute("data-aio-seed-input", "");
@@ -2096,6 +2120,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     }
     postprocessBlock.append(postprocessBody);
 
+    if (settings.model_family === "moss_image") {
+      for (const stage of [highresBlock, detailerBlock, upscaleBlock]) {
+        for (const control of stage.querySelectorAll("input, select, textarea, button")) {
+          control.disabled = true;
+          control.title = aioText("text.mossUnsupported");
+        }
+      }
+    }
     settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock);
 
     samplerCard.append(samplerHeader, settingsScroll);

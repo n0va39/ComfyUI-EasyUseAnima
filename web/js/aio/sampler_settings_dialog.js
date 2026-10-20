@@ -279,9 +279,10 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
   function openSamplerSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
     const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
+    const isMoss = settings.model_family === "moss_image";
     const { backdrop, body, actions } = createDialog(
       "Sampler Details",
-      "Choose one of three sampler paths. Selecting an unavailable path shows its required node pack."
+      "Choose a sampler path for the selected model family. Unavailable paths show their required node pack."
     );
 
     const makeSection = (title, className = "easyuse-anima-aio-section full") => {
@@ -315,7 +316,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const denoise = field(base, "Denoise", numberInput(settings.sampler.denoise, "0.01"));
 
     const sampler = makeSection("Sampler Backend");
-    const backendValues = [
+    const backendValues = isMoss ? ["comfy_ksampler"] : [
       "comfy_ksampler",
       "spectrum_mod_guidance_advanced",
       "spectrum_spd_speed",
@@ -329,6 +330,12 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     dependencyWarning.className = "easyuse-anima-aio-warning";
     dependencyWarning.hidden = true;
     sampler.append(dependencyWarning);
+    if (isMoss) {
+      const modelWarning = document.createElement("div");
+      modelWarning.className = "easyuse-anima-aio-warning";
+      modelWarning.textContent = aioText("text.mossSpectrumUnsupported");
+      sampler.append(modelWarning);
+    }
     const samplerName = field(
       sampler,
       "Sampler",
@@ -344,7 +351,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const modMode = field(
       modGuidance,
       "Mode",
-      selectInput(["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode),
+      selectInput(isMoss ? ["disabled"] : ["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode),
       "tip.modMode",
     );
     const modProfile = field(
@@ -362,6 +369,11 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const modTaperScale = field(modAdvanced, "Taper scale", numberInput(settings.mod_guidance.advanced.mod_taper_scale, "0.05"));
     const modFinalW = field(modAdvanced, "Final W", numberInput(settings.mod_guidance.advanced.mod_final_w, "0.1"));
     sampler.append(modGuidance);
+    if (isMoss) {
+      for (const control of modGuidance.querySelectorAll("input, select, textarea, button")) {
+        control.disabled = true;
+      }
+    }
 
     const backendDetails = document.createElement("div");
     const spectrum = makeSubsection("Spectrum Patch / Advanced Sampler");
@@ -417,7 +429,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const refreshBackendDetails = () => {
       const isComfy = backend.value === "comfy_ksampler";
       const isSpectrumAdvanced = backend.value === "spectrum_mod_guidance_advanced";
-      spectrum.classList.toggle("hidden", !(isComfy || isSpectrumAdvanced));
+      spectrum.classList.toggle("hidden", isMoss || !(isComfy || isSpectrumAdvanced));
       spectrumPatchEnabled.parentElement.style.display = isComfy ? "" : "none";
       spectrumCompat.parentElement.style.display = isComfy ? "" : "none";
       modAdvanced.style.display = isSpectrumAdvanced ? "" : "none";
@@ -549,7 +561,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.denoise = clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0, 1);
       next.sampler.sampler_name = samplerName.value || DEFAULT_GENERATION_SETTINGS.sampler.sampler_name;
       next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
-      next.sampler.spectrum.enabled = (
+      next.sampler.spectrum.enabled = !isMoss && (
         next.sampler.backend === "spectrum_mod_guidance_advanced"
         || (next.sampler.backend === "comfy_ksampler"
           && spectrumPatchEnabled.checked
@@ -568,7 +580,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.spd.adaptive_smc_alpha = Number(spdSmc.value || 0);
       next.sampler.spectrum_extra = spectrumExtra.values();
       next.sampler.spd_extra = spdExtra.values();
-      next.sampler.dit_corrections.enabled = correctionsEnabled.checked
+      next.sampler.dit_corrections.enabled = !isMoss && correctionsEnabled.checked
         && optionalDependencyAvailable("spectrumPatch");
       next.sampler.dit_corrections.dcw_mode = dcwMode.value || "off";
       next.sampler.dit_corrections.dcw_lambda = Number(dcwLambda.value || 0.01);
@@ -579,7 +591,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.dit_corrections.cfgpp = cfgpp.checked;
       next.sampler.dit_corrections.cfgpp_lambda = Number(cfgppLambda.value || 0);
       next.sampler.dit_corrections.fsg = fsg.checked;
-      next.mod_guidance.mode = modMode.value || "prompt_data";
+      next.mod_guidance.mode = isMoss ? "disabled" : modMode.value || "prompt_data";
       next.mod_guidance.profile = modProfile.value || "step_i8_skip27";
       next.mod_guidance.advanced.adapter = modAdapter.value || "(auto-download default)";
       next.mod_guidance.advanced.mod_w = Number(modW.value || 3);
