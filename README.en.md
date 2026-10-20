@@ -62,7 +62,7 @@ Registry-facing integration defaults:
 | Wildcards | Expands wildcard text with Impact Pack style syntax, sequential selection, and `__wildcard__` autocomplete. |
 | LoRA presets | Stores style prompts and LoRA stacks as profiles, with trigger-word and LoRA metadata management. |
 | Compatibility helpers | Aligns detailer crop sizes to safe multiples and scales images to valid Highres-friendly dimensions. |
-| AiO generation | Combines model selection, generation profiles, first-pass sampling, Highres, Detailer, Preview, and Save through `Easy Use Anima Input` and `Anima AiO Generator`. |
+| AiO generation | Combines model selection, generation profiles, first-pass sampling, Highres, Detailer, Preview, and Save through `Easy Use Anima Input` and `AiO Generator (Anima)`. |
 
 ## Demo Videos
 
@@ -86,7 +86,7 @@ Registry-facing integration defaults:
 
 ## Quick Guide: Anima AiO Generation
 
-`Anima AiO Generator` consumes a prompt-data context and runs first-pass
+`AiO Generator (Anima)` consumes a prompt-data context and runs first-pass
 sampling, Highres, Detailer, preview, and image saving in one node. Prompt
 editing stays upstream in `Anima Prompt Studio Advanced v2` and
 `Easy Use Anima Input`, so the generator surface stays focused on generation
@@ -108,7 +108,13 @@ embedding/JSON sidecars, A1111 metadata, and Civitai-compatible model/LoRA
 hashes in the same output path. `ComfyUI-Image-Saver` is not required by AiO
 Save Options.
 
-Detailed settings: [Anima AiO Generator guide](docs/nodes/anima-aio-generator.en.md)
+Detailed settings: [AiO Generator (Anima) guide](docs/nodes/anima-aio-generator.en.md)
+
+`AiO Generator (MOSS)` and `AiO Generator (Krea2)` are separate fixed-model nodes
+using the same Input socket and shared settings/seed/save architecture. Their
+initial scope is basic txt2img with core KSampler; Anima patches, Spectrum,
+hooks and Highres/Detailer/Upscale are unavailable. Krea2 defaults target Turbo.
+See the same guide for required encoders, VAEs and model-specific defaults.
 
 Compact release workflow:
 [ANIMA_Easy_Use_workflow_v1_release_en.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_en.json)
@@ -147,7 +153,9 @@ Mode details: [Anima Artist Mix Conditioning guide](docs/nodes/anima-artist-mix-
 | [Anima Wildcard](docs/nodes/anima-wildcard.en.md) | `EasyUse Anima/Prompt` | Expands wildcard text without Prompt Studio. |
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.en.md) | `EasyUse Anima/LoRA` | Stores and outputs LoRA profiles, style prompts, and trigger words. |
 | [Easy Use Anima Input](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Bundles prompt data plus ANIMA diffusion model, VAE, and CLIP selections into an AiO context. |
-| [Anima AiO Generator](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Runs sampling, Highres, Detailer, preview, and saving from the prompt-data context. |
+| [AiO Generator (Anima)](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Runs sampling, Highres, Detailer, preview, and saving from the prompt-data context. |
+| [AiO Generator (MOSS)](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Native MOSS txt2img with independent model settings and shared preview/save behavior. |
+| [AiO Generator (Krea2)](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Native Krea2 txt2img with Turbo defaults and FLUX sampling shift. |
 | [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.en.md) | `EasyUse Anima/Image` | Scales images to Highres-safe valid multiples while preserving the original aspect ratio. |
 | [Easy Save Image / Easy Image Metadata](docs/nodes/easy-image-output.en.md) | `EasyUse Anima/Image` | Saves PNG/JPEG/WebP with a separate optional metadata node; works with any diffusion model. |
 | [Easy Civitai Lookup](docs/nodes/easy-image-output.en.md) | `EasyUse Anima/Image` | Looks up model/version information by file hash or AIR and supplies hashes to A1111 metadata. |

@@ -26,6 +26,58 @@
 - Excluded: release/version publishing, user-instance deployment, Layout editor,
   prompt expansion, and unverified secondary-stage enablement.
 
+## Fixed-node revision validation (2026-10-20)
+
+Candidate `70facce` passes the official full gate: 1,754 Python tests (3 skipped),
+all frontend checks, 126 JavaScript files and TypeScript 6.0.3. The existing
+Pyright 14-error baseline has no new findings; Ruff remains report-only.
+The first run exposed obsolete adapter mocks/export inventory assertions; the
+updated focused checks and final full run pass. A separate read-only review of
+the backend model/latent/sampling/LoRA/cache/metadata contracts found no defect.
+
+ComfyUI v0.42.1 exposes all three fixed nodes and their correct defaults via
+`object_info`. The served frontend profile module matches the source bytes.
+Legacy Canvas and Node 2.0 both show the model suffixes and immutable identity,
+retain independent settings on save/reload, and disable unreviewed stages for
+MOSS/Krea2. Anima steps 37, MOSS steps 29 and seed 43210 remain independent.
+Krea2 shift 1.23 survives Legacy save/reload; Node 2.0 main-panel shift 1.17 and
+advanced `FLUX shift (mu)` 1.19 save exactly, with Krea2 steps 10. The original
+Legacy renderer setting was restored. An old shared-selector MOSS workflow
+shows an explicit family/node mismatch message while preserving its settings.
+
+The new MOSS node and its embedded PNG API prompt replay under fresh node IDs
+both reproduce the native baseline RGB SHA256
+`fe56e30dbdcfa445bfddd7dc8e733fd618c10903c070102fc57a06efc6cde165`.
+The replay reruns generation; only the input context is cached.
+Legacy v4 Anima input without `model_family` still matches the native reference
+at RGB SHA256 `53015c4b2f0008d1a7cc471e6400a11fbf55b005c5d7b58bab7f21db5df7f65e`.
+
+Krea2 uses the [official Turbo template](https://github.com/Comfy-Org/workflow_templates/blob/3e50a92ca02116ee513c3351db7b7c20a928aa53/templates/image_krea2_turbo_t2i_int8.json):
+8 steps, Comfy CFG 1, Euler/simple, native FLUX mu 1.15, Qwen3-VL 4B encoder,
+Qwen Image VAE. Equal FLUX shift endpoints keep the explicit mu constant at
+every resolution. RAW weights require separate tuning; the node does not infer
+RAW/Turbo from filenames. The [official inference source](https://github.com/krea-ai/krea-2/tree/db3984fbc6e13b34c0064990fc2d95ac64d00058)
+uses a different CFG convention, so its RAW guidance 3.5 corresponds to Comfy
+CFG 4.5, and its RAW mu varies with resolution.
+
+The pinned INT8 Turbo and FP8 encoder downloads from
+[Comfy-Org/Krea-2](https://huggingface.co/Comfy-Org/Krea-2/tree/1171f4dc7e325bf3734586942e737872506c73e1)
+completed with matching sizes and SHA256 hashes. Transfers were sequential with
+an aggregate 5,000,000 bytes/s ceiling. The shared Qwen Image VAE also matches
+the official size and SHA256.
+
+Krea2 native nodes, the fixed AiO node, and an uncached embedded PNG API prompt
+replay all generated the same 1024 x 1024 RGB SHA256:
+`47e21a38e4f2a3adc50f95b34fba91199817c2efd86ea39877056e541798de16`.
+Seed 246813579 and the Turbo defaults above were used. The AiO input intentionally
+omitted `model_family`, steps, CFG and shift: the fixed class inferred Krea2 and
+its defaults correctly. Core SaveImage preserved that partial API payload, and
+replaying it under new node IDs inferred the same settings and reran generation;
+only the input context was cached. Recorded elapsed times were 30.17 seconds
+for native nodes, 21.84 seconds for AiO and 20.08 seconds for replay, with
+different resource-loading states; these are not comparative benchmarks.
+RAW weights, model-specific LoRAs and secondary stages were not GPU-validated.
+
 ## Previous shared-selector validation (2026-10-20)
 
 Environment: ComfyUI v0.42.1 (`63be2f9b82ad0dac88a7ceaa28a9cf3154125a18`),

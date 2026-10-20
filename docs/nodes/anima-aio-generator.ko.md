@@ -25,9 +25,9 @@ Spectrum 원본 2.12.1의 `MossSpectrumKSampler`는 별도 MOSS 로더의 구조
 
 카테고리: `EasyUse Anima/AiO`
 
-![Anima AiO Generator](../images/aio-generator-node.png)
+![AiO Generator (Anima)](../images/aio-generator-node.png)
 
-`Anima AiO Generator`는 `Easy Use Anima Input`에서 전달받은 전용 context를
+`AiO Generator (Anima)`는 `Easy Use Anima Input`에서 전달받은 전용 context를
 사용해 프롬프트 인코딩, 1차 샘플링, 선택적 Highres, 선택적 Detailer, 이미지
 저장을 한 노드에서 실행합니다. Prompt Studio에서 만든 prompt data는 upstream에서
 처리되므로 이 노드 UI에는 프롬프트 편집 항목이 없습니다.
@@ -36,7 +36,7 @@ Spectrum 원본 2.12.1의 `MossSpectrumKSampler`는 별도 MOSS 로더의 구조
 
 1. `Anima 프롬프트 스튜디오 고급 v2`의 prompt data를 `Easy Use Anima Input`에 연결합니다.
 2. `Easy Use Anima Input`에서 ANIMA diffusion model, VAE, CLIP을 각각 선택합니다.
-3. `Easy Use Anima Input` 출력을 `Anima AiO Generator`의 `easy use anima input`에 연결합니다.
+3. `Easy Use Anima Input` 출력을 `AiO Generator (Anima)`의 `easy use anima input`에 연결합니다.
 4. 필요하면 `Anima LoRA Preset`의 `LORA_STACK`을 `lora_stack`에 연결합니다.
 5. 다른 노드팩의 AiO 확장을 쓸 때만 `EASYUSE_ANIMA_AIO_HOOK` 출력을
    `aio_hook`에 연결합니다. 여러 hook은 `Anima AiO Hook Combine`으로 합칩니다.

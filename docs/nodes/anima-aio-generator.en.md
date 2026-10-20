@@ -28,9 +28,9 @@ Anima Spectrum support is preserved.
 
 Category: `EasyUse Anima/AiO`
 
-![Anima AiO Generator](../images/aio-generator-node.png)
+![AiO Generator (Anima)](../images/aio-generator-node.png)
 
-`Anima AiO Generator` consumes the dedicated context from `Easy Use Anima Input`
+`AiO Generator (Anima)` consumes the dedicated context from `Easy Use Anima Input`
 and runs prompt encoding, first-pass sampling, optional Highres, optional
 Detailer, and image saving in one output node. Prompt editing stays upstream in
 Prompt Studio, so the generator UI does not expose prompt fields.
