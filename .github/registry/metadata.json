@@ -3,7 +3,7 @@
   "node_id": "comfyui-easyuse-anima",
   "node": {
     "name": "ComfyUI EasyUse Anima",
-    "description": "Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow helpers for ComfyUI.",
+    "description": "Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets, wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and ANIMA/Spectrum workflow helpers for ComfyUI.",
     "repository": "https://github.com/n0va39/ComfyUI-EasyUseAnima",
     "license": "{\"file\": \"LICENSE\"}",
     "supported_os": [
@@ -25,8 +25,13 @@
   ],
   "versions": [
     {
-      "version": "1.5.0",
+      "version": "1.6.0",
       "deprecated": false,
+      "changelog_file": "changelogs/1.6.0.txt"
+    },
+    {
+      "version": "1.5.0",
+      "deprecated": true,
       "changelog_file": "changelogs/1.5.0.txt"
     },
     {

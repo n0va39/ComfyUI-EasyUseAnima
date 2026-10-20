@@ -1,5 +1,47 @@
 # Release Notes
 
+## 1.6.0
+
+### Added
+
+- Separate **AiO Generator (Anima)**, **AiO Generator (MOSS)** and
+  **AiO Generator (Krea2)** nodes with model-specific defaults and settings.
+  They share the existing Input, preview, saving and workflow controls.
+- MOSS and Krea2 support Highres, SAM3/Impact Detailer, USDU/ResShift Upscale,
+  Artist Mix, compatible generic AiO hooks, SageAttention and FP16 accumulation
+  with the required optional nodes and weights.
+- Krea2 supports Torch Compile. MOSS NegPip requires native-MOSS-compatible
+  ComfyUI-ppm. Unsupported options are disabled for each model.
+
+### Fixed
+
+- Korean, Japanese and Chinese descriptions and socket help cover both new
+  generators. Language changes preserve generation settings.
+- Model-specific defaults also apply to new secondary sampling stages.
+  Explicit saved values and existing Anima workflows remain intact.
+
+### Compatibility
+
+- Use ComfyUI **0.42.1 or newer** for the new model paths. MOSS needs its
+  diffusion model, Qwen3.5 9B encoder, `moss_image` CLIP type and FLUX.2 VAE.
+  Krea2 needs its diffusion model, Qwen3-VL 4B encoder, `krea2` CLIP type and
+  Qwen Image VAE. Width and height must be divisible by 16.
+- Krea2 defaults target **Turbo**: 8 steps, CFG 1, Euler/simple and shift 1.15.
+  RAW requires manual tuning and has not been GPU-validated. MOSS defaults
+  are 25 steps, CFG 2.5, er_sde/simple and shift 5.
+- Spectrum acceleration, SPD, Mod Guidance, DAVE, Safe PAG, DiT corrections
+  and Anima IP-Adapter remain unavailable on MOSS/Krea2. MOSS Torch Compile
+  and Krea2 NegPip are also unsupported. Anima support is preserved.
+- Existing node IDs, saved workflows and profiles remain compatible. Model
+  weights and optional nodes are not bundled or automatically downloaded.
+  See the [generator guide](docs/nodes/anima-aio-generator.en.md).
+
+### Update
+
+- Restart ComfyUI and hard-refresh the browser. For MOSS or Krea2, add the
+  matching generator and select its diffusion model, encoder, CLIP type and
+  VAE in **Easy Use Anima Input**.
+
 ## 1.5.0
 
 ### Added

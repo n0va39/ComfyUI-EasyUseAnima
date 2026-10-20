@@ -2,9 +2,9 @@
 
 Language: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
-Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset
-management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow
-helpers for ComfyUI.
+Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets,
+wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and
+ANIMA/Spectrum workflow helpers for ComfyUI.
 
 This package is independent from `comfyui-naia-bridge`. It does not import or
 override that node pack, so both can be installed at the same time.
