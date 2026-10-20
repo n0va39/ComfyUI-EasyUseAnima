@@ -263,11 +263,10 @@ function createFixture({
     return /^custom_\d+$/.test(String(name || ""));
   }
 
-  function detailerTargetDefaults(targetName) {
+  function detailerTargetDefaults(targetName, family = "anima") {
     dependencyCalls += 1;
-    const defaults = targetName === "eye"
-      ? defaultSettings.detailer.eye
-      : defaultSettings.detailer.face;
+    const familyDefaults = settingsModule.aioGenerationDefaultsForFamily(family);
+    const defaults = targetName === "eye" ? familyDefaults.detailer.eye : familyDefaults.detailer.face;
     const output = clone(defaults);
     if (/^custom_\d+$/.test(String(targetName || ""))) {
       output.label = `Detailer Block ${String(targetName).split("_").pop()}`;
@@ -333,9 +332,9 @@ function createFixture({
     return `custom_${Date.now()}`;
   }
 
-  function createStageOptimizationEditor(title, values, defaults) {
+  function createStageOptimizationEditor(title, values, defaults, family) {
     dependencyCalls += 1;
-    stageCalls.push({ title, values: clone(values), defaults: clone(defaults) });
+    stageCalls.push({ title, values: clone(values), defaults: clone(defaults), family });
     const section = document.createElement("section");
     section.className = "test-stage-optimization";
     section.append(Object.assign(document.createElement("h4"), { textContent: `optimization:${title}` }));
@@ -842,3 +841,18 @@ function createFixture({
 }
 
 console.log("AiO Detailer settings dialog smoke passed.");
+
+for (const family of ["moss_image", "krea2"]) {
+  const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+  const fixture = createFixture({settings});
+  fixture.openDetailerSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  findByText(dialog.body, "text:button.addDetailerBlock").emit("click");
+  const custom = fixture.stageCalls.at(-1);
+  assert.equal(custom.family, family, "custom blocks forward family to the shared optimization editor");
+  assert.equal(custom.values.cfg, settings.sampler.cfg);
+  assert.equal(custom.values.steps, settings.sampler.steps);
+  assert.equal(custom.values.spectrum.enabled, false);
+  assert.equal(custom.values.dit_corrections.enabled, false);
+}

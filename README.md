@@ -1,8 +1,8 @@
 # ComfyUI EasyUse Anima
 
-Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset
-management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow
-helpers for ComfyUI.
+Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets,
+wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and
+ANIMA/Spectrum workflow helpers for ComfyUI.
 
 ## Language / 언어
 
@@ -15,7 +15,7 @@ helpers for ComfyUI.
 - [Korean README quick guide](README.ko.md#빠른-가이드-anima-aio-생성-흐름)
 - [English README quick guide](README.en.md#quick-guide-anima-aio-generation)
 - [Easy Anima Safe PAG](docs/nodes/easy-anima-safe-pag.en.md)
-- [Anima AiO Generator node guide](docs/nodes/anima-aio-generator.en.md)
+- [AiO Generator (Anima) node guide](docs/nodes/anima-aio-generator.en.md)
 - [ANIMA Easy Use workflow v1 guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
 - [ANIMA Easy Use workflow v1 JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 - [Workflow guide](docs/Anima%20AiO/README.md)
@@ -34,7 +34,12 @@ The main workflow is:
 
 1. Write and normalize prompts in Prompt Studio.
 2. Bundle prompt data, ANIMA model, VAE, and CLIP with Easy Use Anima Input.
-3. Run first pass, Highres, Detailer, preview, and saving through Anima AiO Generator.
+3. Run first pass, Highres, Detailer, preview, and saving through AiO Generator (Anima).
+
+Separate `AiO Generator (MOSS)` and `AiO Generator (Krea2)` nodes share the Input,
+seed and saving architecture, including compatible Highres, Detailer, Upscale,
+Artist Mix and KJ options. See the [model-specific guide](docs/nodes/anima-aio-generator.en.md)
+for optional dependencies and unsupported model patches.
 
 ## Demo Videos
 

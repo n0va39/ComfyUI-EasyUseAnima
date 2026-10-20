@@ -552,7 +552,7 @@
     }
   },
   "EasyUseAnimaAIOGenerator": {
-    "display_name": "Anima AiO Generator",
+    "display_name": "AiO Generator (Anima)",
     "description": "easy use anima input 컨텍스트를 받아 기본 txt2img 생성 경로를 실행합니다. 명시적으로 연결한 AiO Hook은 현재 postprocess before/after 경계에서 실행됩니다.",
     "inputs": {
       "easy_use_anima_input": {
@@ -1343,6 +1343,78 @@
     "outputs": {
       "0": {
         "name": "AiO 훅"
+      }
+    }
+  },
+  "EasyUseMossAIOGenerator": {
+    "display_name": "AiO Generator (MOSS)",
+    "description": "ComfyUI 기본 KSampler를 사용하는 MOSS 전용 AiO 생성기입니다. Highres, SAM3 Detailer, USDU/ResShift, Artist Mix, 일반 AiO hook과 KJ 최적화를 지원합니다. 모델별 지원 범위는 노드 안내를 확인하세요.",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "Easy Use Anima Input 노드에서 나온 전용 컨텍스트입니다."
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "생성 팝업 설정을 저장하는 숨김 versioned JSON입니다. 직렬화 상태를 유지해야 합니다."
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "선택적 EASYUSE_ANIMA_AIO_HOOK 입력입니다. 공개 가이드에 따라 만든 확장을 명시적으로 연결합니다."
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "선택적 LORA_STACK입니다. 선택한 모델과 호환되는 LoRA를 연결하세요."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "VAE decode가 끝난 생성 이미지입니다."
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "KSampler가 반환한 LATENT입니다."
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "디버깅과 다운스트림 연동을 위한 생성 메타데이터 JSON입니다."
+      }
+    }
+  },
+  "EasyUseKrea2AIOGenerator": {
+    "display_name": "AiO Generator (Krea2)",
+    "description": "ComfyUI 기본 KSampler를 사용하는 Krea2 전용 AiO 생성기입니다. Highres, SAM3 Detailer, USDU/ResShift, Artist Mix, 일반 AiO hook과 KJ 최적화를 지원합니다. 모델별 지원 범위는 노드 안내를 확인하세요.",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "Easy Use Anima Input 노드에서 나온 전용 컨텍스트입니다."
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "생성 팝업 설정을 저장하는 숨김 versioned JSON입니다. 직렬화 상태를 유지해야 합니다."
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "선택적 EASYUSE_ANIMA_AIO_HOOK 입력입니다. 공개 가이드에 따라 만든 확장을 명시적으로 연결합니다."
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "선택적 LORA_STACK입니다. 선택한 모델과 호환되는 LoRA를 연결하세요."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "VAE decode가 끝난 생성 이미지입니다."
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "KSampler가 반환한 LATENT입니다."
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "디버깅과 다운스트림 연동을 위한 생성 메타데이터 JSON입니다."
       }
     }
   }

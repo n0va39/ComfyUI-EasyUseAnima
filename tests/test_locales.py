@@ -12,12 +12,10 @@ from easyuse_anima.registration import NODE_CLASS_MAPPINGS
 ROOT = Path(__file__).resolve().parents[1]
 LOCALE_CODES = ("ko", "ja", "zh", "zh-CN")
 HANGUL_RE = re.compile(r"[가-힣]")
-REGISTRATION_MODULE = ROOT / "easyuse_anima" / "registration.py"
 
 
 def exposed_node_ids() -> set[str]:
-    text = REGISTRATION_MODULE.read_text(encoding="utf-8")
-    return set(re.findall(r'"(EasyUseAnima[^"]+)":', text))
+    return {node_id for node_id in NODE_CLASS_MAPPINGS if node_id.startswith("EasyUse")}
 
 
 class LocaleTests(unittest.TestCase):
@@ -172,14 +170,17 @@ class LocaleTests(unittest.TestCase):
                 data["EasyUseAnimaInput"]["outputs"]["0"]["name"],
                 "easy use anima input",
             )
-            self.assertEqual(
-                data["EasyUseAnimaAIOGenerator"]["inputs"]["easy_use_anima_input"]["name"],
-                "easy use anima input",
-            )
-            self.assertEqual(
-                data["EasyUseAnimaAIOGenerator"]["outputs"]["2"]["name"],
-                "metadata_json",
-            )
+            for node_id, model in (
+                ("EasyUseAnimaAIOGenerator", "Anima"),
+                ("EasyUseMossAIOGenerator", "MOSS"),
+                ("EasyUseKrea2AIOGenerator", "Krea2"),
+            ):
+                self.assertEqual(data[node_id]["display_name"], f"AiO Generator ({model})")
+                self.assertEqual(
+                    data[node_id]["inputs"]["easy_use_anima_input"]["name"],
+                    "easy use anima input",
+                )
+                self.assertEqual(data[node_id]["outputs"]["2"]["name"], "metadata_json")
             input_names = data["EasyUseAnimaInput"]["inputs"]
             self.assertNotIn("ckpt_name", input_names)
             for key in ("unet_name", "vae_name", "clip_name", "clip_type"):

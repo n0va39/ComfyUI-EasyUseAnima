@@ -20,6 +20,7 @@ from .generation_migrations import (
     AIO_GENERATION_STAGE_IDS,
     AIO_MODEL_PATCH_ORDER_REVISION,
 )
+from .model_profiles import aio_model_profile
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -186,6 +187,23 @@ def _patch_model_sampling_aura_flow(model, aura_settings: dict[str, Any]):
     return values[0]
 
 
+def _patch_aio_model_sampling(model, settings: dict[str, Any], family: str):
+    profile = aio_model_profile(family)
+    if profile.sampling_node == "ModelSamplingAuraFlow":
+        return _patch_model_sampling_aura_flow(model, settings)
+    sampling_cls = _find_comfy_node_class(profile.sampling_node)
+    if sampling_cls is None:
+        raise RuntimeError(f"[EasyUseAnima] Missing required core node '{profile.sampling_node}'.")
+    shift = _as_float(settings.get("shift"), profile.shift)
+    # Equal endpoints preserve the explicit Krea2 mu at every resolution.
+    values = _node_output_tuple(sampling_cls().patch(
+        model, max_shift=shift, base_shift=shift, width=1024, height=1024,
+    ))
+    if not values:
+        raise RuntimeError(f"[EasyUseAnima] {profile.sampling_node} returned no MODEL.")
+    return values[0]
+
+
 def _apply_aio_kj_non_compile_patches(model, kj_settings: dict[str, Any]):
     sage_attention = _aio_sage_attention_mode(kj_settings)
     sage_cls = (
@@ -294,7 +312,8 @@ def _aio_stage_model_patch_plan(
     sage_enabled = stage_kj_settings["sage_attention"] != "disabled"
     compile_before_dave = dave_in_stage and compile_enabled
 
-    patch_ids = ["aura_flow"]
+    family = settings.get("model_family", "anima")
+    patch_ids = ["flux" if aio_model_profile(family).sampling_node == "ModelSamplingFlux" else "aura_flow"]
     if compile_before_dave:
         patch_ids.append("kj.torch_compile")
     if dave_in_stage:
@@ -316,6 +335,8 @@ def _aio_stage_model_patch_plan(
         "kj": stage_kj_settings,
         "compile_before_dave": compile_before_dave,
     }
+    if family != "anima":
+        payload["model_family"] = family
     return StageModelPatchPlan(
         signature=_stable_change_key(payload),
         patch_ids=tuple(patch_ids),
@@ -338,9 +359,10 @@ def _apply_aio_stage_model_patch_plan(model, plan: StageModelPatchPlan):
     if not isinstance(kj_settings, dict):
         kj_settings = {}
 
-    patched = _patch_model_sampling_aura_flow(
+    patched = _patch_aio_model_sampling(
         model,
         aura_settings,
+        payload.get("model_family", "anima"),
     )
     compile_before_dave = bool(payload.get("compile_before_dave"))
     if compile_before_dave:

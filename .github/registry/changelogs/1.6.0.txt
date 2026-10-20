@@ -1,0 +1,15 @@
+EasyUse Anima 1.6.0 adds separate AiO generators for Anima, MOSS and Krea2.
+
+Changes:
+1. Choose AiO Generator (Anima), AiO Generator (MOSS) or AiO Generator (Krea2). Each uses its own model settings and defaults while sharing the Input, preview, image saving and workflow controls. Existing Anima workflows keep their node IDs and saved settings.
+2. MOSS and Krea2 support Highres, SAM3/Impact Detailer, USDU/ResShift Upscale, Artist Mix, compatible generic AiO hooks, SageAttention and FP16 accumulation when the required optional nodes and weights are installed.
+3. Krea2 supports Torch Compile. MOSS supports NegPip with a native-MOSS-compatible ComfyUI-ppm installation. Unsupported model-specific controls are disabled.
+4. Korean, Japanese and Chinese node descriptions and socket help cover both new generators. Language changes preserve saved generation settings.
+
+Compatibility:
+Use ComfyUI 0.42.1 or newer for the new model paths. MOSS requires its diffusion model, Qwen3.5 9B encoder, moss_image CLIP type and FLUX.2 VAE. Krea2 requires its diffusion model, Qwen3-VL 4B encoder, krea2 CLIP type and Qwen Image VAE. Dimensions must be divisible by 16. Models and optional nodes are not bundled or downloaded automatically.
+Krea2 defaults target Turbo: 8 steps, CFG 1, Euler/simple and shift 1.15. RAW requires manual tuning and has not been GPU-validated. MOSS defaults are 25 steps, CFG 2.5, er_sde/simple and shift 5.
+Spectrum acceleration, SPD, Mod Guidance, DAVE, Safe PAG, DiT corrections and Anima IP-Adapter are not supported on MOSS or Krea2. MOSS Torch Compile and Krea2 NegPip are also unavailable. Existing Anima support is preserved.
+
+Action required:
+Restart ComfyUI and hard-refresh the browser after updating. For MOSS or Krea2, add the matching generator and select the correct diffusion model, encoder, CLIP type and VAE in Easy Use Anima Input. Do not reuse Anima model files or model-specific settings for the new generators.

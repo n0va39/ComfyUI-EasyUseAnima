@@ -20,9 +20,9 @@
   "module_exceptions": [
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
-      "baseline_loc": 834,
+      "baseline_loc": 849,
       "owner_issue": 188,
-      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams. Issue #679 adds one injected cleanup callback line; safe ResShift model loading lives in its own adapter."
+      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams. Issue #679 adds one injected cleanup callback line; safe ResShift model loading lives in its own adapter. MOSS adds profile validation calls and a model-specific latent callback; policy remains in model_profiles.py."
     },
     {
       "path": "easyuse_anima/bootstrap.py",
@@ -66,9 +66,9 @@
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
       "qualified_name": "_run_aio_generation_pipeline",
-      "baseline_loc": 375,
+      "baseline_loc": 383,
       "owner_issue": 188,
-      "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order."
+      "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order. MOSS adds five profile/validation lines and three latent-callback binding lines, without inline model policy."
     },
     {
       "path": "easyuse_anima/aio/legacy_upscale.py",

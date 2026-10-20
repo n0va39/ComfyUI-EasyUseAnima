@@ -552,7 +552,7 @@
     }
   },
   "EasyUseAnimaAIOGenerator": {
-    "display_name": "Anima AiO Generator",
+    "display_name": "AiO Generator (Anima)",
     "description": "Consumes the easy use anima input context and runs txt2img. Explicit AiO hooks currently run at the postprocess before/after boundary.",
     "inputs": {
       "easy_use_anima_input": {
@@ -1290,6 +1290,78 @@
       "0": {
         "name": "model",
         "tooltip": "對 Anima 系列 MODEL 套用 Safe PAG。不需要額外模型或外部節點套件，執行後會還原 attention。"
+      }
+    }
+  },
+  "EasyUseMossAIOGenerator": {
+    "display_name": "AiO Generator (MOSS)",
+    "description": "使用 ComfyUI 原生 KSampler 的 MOSS 專用 AiO 生成節點。支援 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、通用 AiO hook 和 KJ 最佳化。各模型的支援範圍請參閱節點提示。",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "來自 Easy Use Anima Input 節點的專用內容。"
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "儲存生成設定的隱藏版本化 JSON。請保留工作流程中的序列化資料。"
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "可選的 EASYUSE_ANIMA_AIO_HOOK 輸入。請連接依照公開指南建立的擴充。"
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "可選的 LORA_STACK。請連接與所選模型相容的 LoRA。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "經 VAE 解碼的生成影像。"
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "取樣後的 LATENT。"
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "用於除錯或下游整合的生成中繼資料 JSON。"
+      }
+    }
+  },
+  "EasyUseKrea2AIOGenerator": {
+    "display_name": "AiO Generator (Krea2)",
+    "description": "使用 ComfyUI 原生 KSampler 的 Krea2 專用 AiO 生成節點。支援 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、通用 AiO hook 和 KJ 最佳化。各模型的支援範圍請參閱節點提示。",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "來自 Easy Use Anima Input 節點的專用內容。"
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "儲存生成設定的隱藏版本化 JSON。請保留工作流程中的序列化資料。"
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "可選的 EASYUSE_ANIMA_AIO_HOOK 輸入。請連接依照公開指南建立的擴充。"
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "可選的 LORA_STACK。請連接與所選模型相容的 LoRA。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "經 VAE 解碼的生成影像。"
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "取樣後的 LATENT。"
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "用於除錯或下游整合的生成中繼資料 JSON。"
       }
     }
   }

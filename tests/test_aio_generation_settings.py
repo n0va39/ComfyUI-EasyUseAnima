@@ -133,7 +133,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
             })
         self.assertEqual(invalid["negpip"], {"mode": "off"})
 
-    def test_fresh_v4_legacy_scopes_and_malformed_scopes_normalize_without_ambiguity(self):
+    def test_fresh_v5_legacy_scopes_and_malformed_scopes_normalize_without_ambiguity(self):
         legacy = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
         legacy["version"] = 1
         legacy_dave = legacy["model_patches"]["dave"]
@@ -151,7 +151,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
             migrated = generation_normalization._normalize_aio_generation_settings(legacy)
             malformed_normalized = generation_normalization._normalize_aio_generation_settings(malformed)
 
-        self.assertEqual(fresh["version"], 4)
+        self.assertEqual(fresh["version"], 5)
         self.assertEqual(
             fresh["model_patches"]["dave"]["stage_scope"],
             {
@@ -179,7 +179,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
                 "upscale": False,
             },
         )
-        self.assertEqual(migrated["version"], 4)
+        self.assertEqual(migrated["version"], 5)
         self.assertEqual(
             migrated["model_patches"]["dave"]["stage_scope"],
             {

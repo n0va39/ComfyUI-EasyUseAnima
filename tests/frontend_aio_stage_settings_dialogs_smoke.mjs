@@ -60,6 +60,7 @@ async function flushPromises() {
 
 const stageDialogModule = await import(dataModule("../web/js/aio/stage_settings_dialogs.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const modelProfilesModule = await import(dataModule("../web/js/aio/model_profiles.js"));
 const numericLimits = {
   samplerSteps: { min: 1, max: 10000 },
   samplerCfg: { min: 0, max: 100 },
@@ -308,6 +309,7 @@ function createFixture({
       format,
     },
     settingsCore: {
+      modelProfile: modelProfilesModule.aioModelProfile,
       defaultGenerationSettings: defaultSettings,
       fallbackSamplerNames: ["euler", "er_sde"],
       fallbackSchedulerNames: ["simple", "karras"],
@@ -733,3 +735,20 @@ function createFixture({
 }
 
 console.log("AiO stage settings dialogs smoke passed.");
+
+for (const family of ["moss_image", "krea2"]) {
+  const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+  const fixture = createFixture({ settings, available: { spectrumPatch: true }, deferLoads: true });
+  for (const stage of ["highres", "upscale"]) {
+    const values = clone(settings[stage]);
+    values.spectrum.enabled = true;
+    values.dit_corrections.enabled = true;
+    const editor = fixture.runtime.createStageOptimizationEditor(stage, values, settings[stage], family);
+    fixture.resolveLoads();
+    await flushPromises();
+    assert.ok(editor.section.querySelectorAll("input, select, textarea, button").every((control) => control.disabled));
+    assert.equal(rowByLabel(editor.section, "Spectrum patch").children[0].checked, true, "locked saved values remain visible");
+    assert.deepEqual(editor.values(), { spectrum: values.spectrum, dit_corrections: values.dit_corrections });
+    assert.ok(findByText(editor.section, `format:text.modelSpectrumUnsupported:${JSON.stringify({ model: family === "krea2" ? "Krea2" : "MOSS" })}`));
+  }
+}

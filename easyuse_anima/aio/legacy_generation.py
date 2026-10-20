@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import partial
 
 import logging
 import random
@@ -116,6 +117,7 @@ from .resources import (
     _load_upscale_model_with_comfy,
 )
 from .sampling import (
+    _generate_empty_model_latent_with_comfy,
     _aio_highres_effective_backend,
     _aio_stage_sampler_settings,
     _decode_latent_with_comfy,
@@ -123,6 +125,11 @@ from .sampling import (
     _generate_empty_latent_with_comfy,
     _resolve_aio_runtime_seed,
     _sample_latent_with_aio_backend,
+)
+from .model_profiles import (
+    validate_aio_model_dimensions,
+    validate_aio_model_resources,
+    validate_aio_model_settings,
 )
 from .usdu import _aio_usdu_tile_plan
 
@@ -465,9 +472,13 @@ def _run_aio_generation_pipeline(
 ):
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
+    family = settings.get("model_family", "anima")
+    validate_aio_model_settings(settings, aio_hook=aio_hook)
+    validate_aio_model_resources(family, context)
     generation_config, prepared_aio_hook = _aio_generation_config_from_dict(settings), prepare_aio_hook(aio_hook)
     prompt_data, effective_lora_stack = _prepare_aio_prompt_loras(context["prompt_data"], lora_stack, normalize_prompt_data=_normalize_prompt_data)
     base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
+    validate_aio_model_resources(family, context, model=base_model)
     model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
         base_model,
         base_clip,
@@ -493,6 +504,7 @@ def _run_aio_generation_pipeline(
             width,
             height,
         ) = _advanced_outputs_from_prompt_data(prompt_data)
+        validate_aio_model_dimensions(family, width, height)
         (
             _positive_execution_prompt,
             negative_execution_prompt,
@@ -699,7 +711,10 @@ def _run_aio_generation_pipeline(
         runtime=FirstPassRuntime(
             get_cache=_get_aio_first_pass_cache,
             put_cache=_put_aio_first_pass_cache,
-            generate_empty_latent=_generate_empty_latent_with_comfy,
+            generate_empty_latent=(
+                _generate_empty_latent_with_comfy if family == "anima" else
+                partial(_generate_empty_model_latent_with_comfy, model_family=family)
+            ),
             sample_latent=_sample_latent_with_aio_backend,
             decode_latent=_decode_latent_with_comfy,
             resize_image=_resize_image_to_size_if_needed,

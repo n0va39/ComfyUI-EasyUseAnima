@@ -19,6 +19,7 @@
 
 /**
  * @typedef {object} AioStageDialogSettingsCore
+ * @property {(family?: string) => any} modelProfile
  * @property {any} defaultGenerationSettings
  * @property {any[]} fallbackSamplerNames
  * @property {any[]} fallbackSchedulerNames
@@ -67,7 +68,7 @@
  *
  * @param {AioStageSettingsDialogDependencies} dependencies
  * @returns {{
- *   createStageOptimizationEditor: (title: any, values: any, defaults: any) => any,
+ *   createStageOptimizationEditor: (title: any, values: any, defaults: any, family?: string) => any,
  *   openHighresSettings: (node: any) => void,
  *   openUpscaleSettings: (node: any) => void,
  * }}
@@ -95,6 +96,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     format: aioFormat,
   } = text;
   const {
+    modelProfile,
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
@@ -122,7 +124,9 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
-  function createStageOptimizationEditor(title, values, defaults) {
+  function createStageOptimizationEditor(title, values, defaults, family = "anima") {
+    const profile = modelProfile(family);
+    const capabilities = profile.capabilities;
     const section = document.createElement("section");
     section.className = "easyuse-anima-aio-section";
     section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
@@ -162,6 +166,15 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     dependencyWarning.hidden = true;
     section.append(dependencyWarning);
     const refreshDependencyLocks = () => {
+      if (!capabilities.spectrum || !capabilities.ditCorrections) {
+        for (const control of section.querySelectorAll("input, select, textarea, button")) {
+          control.disabled = true;
+          control.title = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
+        }
+        dependencyWarning.hidden = false;
+        dependencyWarning.textContent = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
+        return;
+      }
       const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
       const message = aioFormat("warning.optionalDependencyMissing", {
         backend: title,
@@ -202,6 +215,9 @@ export function aioCreateStageSettingsDialogs(dependencies) {
         }
       },
       values() {
+        if (!capabilities.spectrum || !capabilities.ditCorrections) {
+          return { spectrum: spectrumValues, dit_corrections: correctionValues };
+        }
         return {
           spectrum: {
             enabled: spectrumEnabled.checked && optionalDependencyAvailable("spectrumPatch"),
@@ -294,7 +310,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), highres.scheduler)
     );
     const denoise = field(sampler, "Denoise", numberInput(highres.denoise, "0.01"));
-    const optimization = createStageOptimizationEditor("Highres Optimization", highres, DEFAULT_GENERATION_SETTINGS.highres);
+    const optimization = createStageOptimizationEditor("Highres Optimization", highres, DEFAULT_GENERATION_SETTINGS.highres, settings.model_family);
     const updateInheritedRows = () => {
       const usesMain = inheritSampler.checked;
       const display = usesMain ? "none" : "";
@@ -459,7 +475,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       "tip.scheduler",
     );
     const denoise = field(usduSampler, "Denoise", numberInput(upscale.denoise, "0.01"), "tip.denoise");
-    const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale);
+    const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale, settings.model_family);
 
     const resshiftSection = document.createElement("section");
     resshiftSection.className = "easyuse-anima-aio-section";

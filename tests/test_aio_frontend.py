@@ -234,7 +234,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         registration_start = extension_source.index("async beforeRegisterNodeDef")
         generator_block = extension_source[
             extension_source.index(
-                "if (nodeData.name === GENERATOR_NODE_TYPE)", registration_start
+                "if (generatorNodeTypes.includes(nodeData.name))", registration_start
             ):
         ]
         start = generator_block.index("nodeType.prototype.onExecuted = function")
@@ -335,7 +335,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
             registration_start,
         )
         generator_hooks_start = extension_source.index(
-            "      if (nodeData.name === GENERATOR_NODE_TYPE) {",
+            "      if (generatorNodeTypes.includes(nodeData.name)) {",
             configure_start,
         )
         generator_hooks_end = extension_source.index(

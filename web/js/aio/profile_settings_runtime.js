@@ -26,6 +26,7 @@ const PROFILE_EXISTS_CODE = "profile_exists";
 /**
  * @typedef {object} AioProfileSettingsCore
  * @property {any} defaultSettings
+ * @property {(family: string) => any} [defaultsForFamily]
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(settings: any) => any} migratePostprocess
  */
@@ -93,6 +94,7 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
   } = profileCore;
   const {
     defaultSettings,
+    defaultsForFamily = () => defaultSettings,
     mergeDefaults,
     migratePostprocess,
   } = settingsCore;
@@ -170,7 +172,11 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
   }
 
   function applyProfileSettings(node, value, settings) {
-    const next = migratePostprocess(mergeDefaults(defaultSettings, settings));
+    const family = getSettings(node).model_family || "anima";
+    if ((settings.model_family || "anima") !== family) {
+      throw new Error(`This profile belongs to ${settings.model_family || "anima"}; use the matching AiO Generator node.`);
+    }
+    const next = migratePostprocess(mergeDefaults(defaultsForFamily(family), settings));
     applyVisibleSettings(node, next);
     writeSettings(node, next, true);
     node.__easyuseAnimaGeneratorProfileValue = value;
@@ -186,6 +192,9 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     }
     if (textValue.startsWith("builtin:")) {
       const profileId = textValue.slice(8);
+      if ((getSettings(node).model_family || "anima") !== "anima") {
+        throw new Error("Built-in Anima profiles require AiO Generator (Anima).");
+      }
       applyProfileSettings(
         node,
         textValue,
@@ -376,7 +385,7 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     }
     const builtInGroup = document.createElement("optgroup");
     builtInGroup.label = text("profile.groupBuiltIn");
-    for (const profileId of builtinIds()) {
+    for (const profileId of (getSettings(node).model_family || "anima") === "anima" ? builtinIds() : []) {
       const option = document.createElement("option");
       option.value = `builtin:${profileId}`;
       option.textContent = text(`profile.${profileId}`);

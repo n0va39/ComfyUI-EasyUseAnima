@@ -3,7 +3,7 @@
 언어: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
 프롬프트 편집, ANIMA 프롬프트 보정, NAIA 프롬프트 연동, LoRA 프리셋 관리,
-와일드카드 확장, AiO 생성, ANIMA/Spectrum workflow 보조 기능을 제공하는
+와일드카드 확장, Anima·MOSS·Krea2 모델별 AiO 생성, ANIMA/Spectrum workflow 보조 기능을 제공하는
 ComfyUI 커스텀 노드팩입니다.
 
 이 패키지는 `comfyui-naia-bridge`와 독립적으로 동작합니다. 해당 노드팩을
@@ -61,7 +61,7 @@ Registry 기준 외부 연동 기본값:
 | 와일드카드 | Impact Pack 계열 문법과 호환되는 wildcard 확장, 순차 선택, `__wildcard__` 자동완성을 제공합니다. |
 | LoRA 프리셋 | 스타일 프롬프트와 LoRA stack을 프로필로 저장하고, trigger word와 LoRA metadata를 workflow 안에서 관리하기 쉽게 만듭니다. |
 | 호환성 노드 | Detailer crop 크기를 32배수로 정렬하거나, Highres용 이미지 크기를 유효 배율로 맞추는 보조 노드를 제공합니다. |
-| AiO 생성 | `Easy Use Anima Input`과 `Anima AiO Generator`로 모델 선택, 생성 프로필, 1차 샘플링, Highres, Detailer, Preview, Save를 하나의 흐름으로 묶습니다. |
+| AiO 생성 | `Easy Use Anima Input`과 `AiO Generator (Anima)`로 모델 선택, 생성 프로필, 1차 샘플링, Highres, Detailer, Preview, Save를 하나의 흐름으로 묶습니다. |
 
 ## 데모 영상
 
@@ -85,7 +85,7 @@ Registry 기준 외부 연동 기본값:
 
 ## 빠른 가이드: Anima AiO 생성 흐름
 
-`Anima AiO Generator`는 prompt data context를 받아 1차 샘플링, Highres,
+`AiO Generator (Anima)`는 prompt data context를 받아 1차 샘플링, Highres,
 Detailer, 미리보기, 이미지 저장을 한 노드에서 처리합니다. 프롬프트 작성은
 `Anima Prompt Studio Advanced v2`와 `Easy Use Anima Input`에서 끝내고, 생성
 노드에는 생성 관련 설정만 남기는 구조입니다.
@@ -94,7 +94,7 @@ Detailer, 미리보기, 이미지 저장을 한 노드에서 처리합니다. �
 
 1. `Anima Prompt Studio Advanced v2`의 `EASYUSE_ANIMA_PROMPT_DATA`를 `Easy Use Anima Input`에 연결합니다.
 2. `Easy Use Anima Input`에서 ANIMA diffusion model, VAE, CLIP을 각각 선택합니다.
-3. `Easy Use Anima Input` 출력을 `Anima AiO Generator`의 `easy use anima input`에 연결합니다.
+3. `Easy Use Anima Input` 출력을 `AiO Generator (Anima)`의 `easy use anima input`에 연결합니다.
 4. LoRA를 같이 쓰면 `Anima LoRA Preset`의 `LORA_STACK`을 `lora_stack`에 연결합니다.
 
 기본 노드 화면에서는 seed, steps, CFG, shift, denoise, sampler, scheduler,
@@ -105,7 +105,13 @@ backend가 PNG, JPEG, WebP 저장, workflow embed/JSON sidecar, A1111 metadata,
 Civitai 호환 model/LoRA hash를 같은 출력 경로에서 처리합니다. AiO Save
 Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.
 
-자세한 설정 기준: [Anima AiO Generator 문서](docs/nodes/anima-aio-generator.ko.md)
+자세한 설정 기준: [AiO Generator (Anima) 문서](docs/nodes/anima-aio-generator.ko.md)
+
+`AiO Generator (MOSS)`와 `AiO Generator (Krea2)`는 모델별로 분리된 노드이며
+같은 Input 소켓과 공통 설정·시드·저장 구조를 사용합니다. Highres·Detailer·Upscale,
+Artist Mix, 일반 hook과 KJ 실행 옵션을 지원합니다. Anima 전용 패치와 Spectrum은
+제외되며 MOSS NegPip은 최신 ComfyUI-ppm이 필요합니다. Krea2 기본값은 Turbo용입니다. 필요한 인코더·VAE와 모델별
+기본값은 위 생성 노드 문서에서 확인할 수 있습니다.
 
 배포용 간단 워크플로우:
 [ANIMA_Easy_Use_workflow_v1_release_ko.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
@@ -144,7 +150,9 @@ Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.
 | [Anima Wildcard](docs/nodes/anima-wildcard.ko.md) | `EasyUse Anima/Prompt` | Prompt Studio 없이 와일드카드 문자열만 확장합니다. |
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.ko.md) | `EasyUse Anima/LoRA` | LoRA profile, style prompt, trigger word를 저장하고 출력합니다. |
 | [Easy Use Anima Input](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data와 ANIMA diffusion model, VAE, CLIP 선택을 AiO 전용 context로 묶습니다. |
-| [Anima AiO Generator](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data context를 받아 샘플링, Highres, Detailer, 미리보기, 저장을 한 노드에서 실행합니다. |
+| [AiO Generator (Anima)](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data context를 받아 샘플링, Highres, Detailer, 미리보기, 저장을 한 노드에서 실행합니다. |
+| [AiO Generator (MOSS)](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | 독립 모델 설정과 공통 미리보기·저장 구조로 네이티브 MOSS txt2img를 실행합니다. |
+| [AiO Generator (Krea2)](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | Turbo 기본값과 FLUX shift를 사용하는 네이티브 Krea2 txt2img 노드입니다. |
 | [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.ko.md) | `EasyUse Anima/Image` | 원본 비율을 유지하면서 Highres에 안전한 유효 배율과 크기 배수로 이미지를 확대합니다. |
 | [Easy Save Image / Easy Image Metadata](docs/nodes/easy-image-output.ko.md) | `EasyUse Anima/Image` | 모든 확산 모델에서 별도 메타데이터 노드를 선택적으로 연결해 PNG/JPEG/WebP로 저장합니다. |
 | [Easy Civitai 조회](docs/nodes/easy-image-output.ko.md) | `EasyUse Anima/Image` | 파일 해시 또는 AIR로 모델·버전 정보를 조회하고 A1111 메타데이터에 연결할 해시를 출력합니다. |
