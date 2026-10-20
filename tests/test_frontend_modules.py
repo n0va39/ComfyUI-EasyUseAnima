@@ -660,6 +660,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "getSettings: generatorSettings,",
                 "applyVisibleSettings: applyVisibleGeneratorSettings,",
                 "writeSettings: writeGeneratorSettingsFromState,",
+                "switchModelFamily: (settings, family) => aioSwitchModelFamily(",
+                "settings, family, aioGenerationDefaultsForFamily,",
+                "),",
                 "syncSettingsFromVisible: syncGeneratorSettingsFromVisible,",
                 "widgetValue,",
                 "widgetOptions,",
@@ -1888,6 +1891,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "aioNormalizeSeedValue",
             "aioParseSettingsValue",
             "aioSettingsToCompactJson",
+            "aioGenerationDefaultsForFamily",
         }
         expected_internal_functions = {"aioMigrateGenerationSettingsVersion"}
         exported_functions = set(
