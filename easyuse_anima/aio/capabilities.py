@@ -91,17 +91,21 @@ def aio_feature_support(
         "reason_code": "" if supported else "model_feature_unsupported",
     }
     if family == "moss_image" and feature == "spectrum":
-        _, status = native_moss_spectrum_provider(node_lookup)
-        supported = status == "available" and stage == "sampler"
+        node, status = native_moss_spectrum_provider(node_lookup)
+        stages = [
+            name for name in SAMPLING_STAGES
+            if node is not None and name in node.SPECTRUM_CAPABILITIES["stages"]
+        ]
+        supported = status == "available" and stage in stages
         result.update(
             supported=supported,
-            status=status if stage == "sampler" else "unsupported",
-            stages=["sampler"],
+            status="unsupported" if status == "available" and not supported else status,
+            stages=stages,
             provider="ComfyUI-Spectrum-KSampler",
             adapter=NATIVE_MOSS_SPECTRUM_NODE,
             reason_code=(
                 "" if supported else
-                "stage_not_supported" if stage != "sampler" else
+                "stage_not_supported" if status == "available" else
                 "native_moss_adapter_missing" if status == "missing_dependency" else
                 "native_moss_adapter_incompatible"
             ),

@@ -337,7 +337,8 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const denoise = field(base, "Denoise", numberInput(settings.sampler.denoise, "0.01"));
 
     const sampler = makeSection("Sampler Backend");
-    const backendValues = !capabilities.spectrum ? ["comfy_ksampler"] : [
+    // Native forecast adapters do not implement Anima's integrated backends.
+    const backendValues = profile.family !== "anima" ? ["comfy_ksampler"] : [
       "comfy_ksampler",
       "spectrum_mod_guidance_advanced",
       "spectrum_spd_speed",

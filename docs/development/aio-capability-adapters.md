@@ -1,5 +1,71 @@
 # AiO capability adapters
 
+## Follow-up: all MOSS sampling stages
+
+Bases: AiO `0eaf778`, native Spectrum adapter `3cfbd05`.
+Extend native MOSS forecasting to Highres, every Detailer block and USDU
+sampling, including repeated crop/tile calls. Keep model defaults, saved v5
+settings, Anima behavior and unsupported guidance/correction features unchanged.
+Owned changes are capability policy, stage optimization UI, adapter lifecycle
+and their focused tests. Old first-pass-only provider contracts retain only
+their advertised support. Require per-sampling cache isolation, partial-denoise
+and short-schedule tests, the full gate, and isolated GPU stage execution.
+No public PR, release or user-instance deployment. A lifecycle/numerical
+regression blocks completion until resolved.
+
+The provider's advertised stages are intersected with the four implemented AiO
+stages. The shared stage editor now evaluates forecasting and DiT corrections
+independently and uses the native MOSS dependency for forecasting. Advanced/SPD
+sampler backends remain separately restricted to their implemented Anima path.
+Missing/older providers preserve saved controls without enabling unadvertised
+stages. The v5 settings schema and all model defaults are unchanged.
+
+The Spectrum adapter now owns forecast state per Comfy `OUTER_SAMPLE`
+invocation and releases it in `finally`. It uses the actual sigma schedule
+length, not the nominal scheduler construction length. Detailer cycles and USDU
+tiles therefore each start with fresh predictors, including identical sigma
+schedules and a subsequent crop starting at a lower sigma. Unsupported direct
+model-forward calls run actual forwards instead of guessing a sampling boundary.
+
+Focused capability tests, stage/detailer/sampler frontend smokes, and the
+Spectrum CPU suite (26 tests) passed. The final full gate, including the
+Anima-backend isolation fix, passed 1,769 Python tests with three skips,
+architecture gates and frontend checks covering 126 JavaScript files
+(TypeScript 6.0.3). ComfyUI v0.42.1 / frontend 1.55.18 were used. Existing
+report-only Ruff findings and the Pyright baseline were unchanged.
+
+Five isolated RTX 5070 Ti runs completed the full pipeline: disabled Spectrum,
+enabled-but-all-actual, forecast, repeat, and forecast with explicit logger
+level to expose USDU's normally suppressed sampling logs. Native int8 convrot
+MOSS, Qwen3.5-9B w4a8 and FLUX.2 small VAE were used with seed 246813579,
+CFG 2.5, ER-SDE/Simple and shift 5. The pipeline generated 1024x1024, Highres
+1152x1152, a detected teapot Detailer crop (two forced cycles), and USDU
+1440x1440 with nine 704x704 tiles.
+
+| Sampling stage | Invocations | Steps per invocation | Actual / forecast |
+| --- | ---: | ---: | ---: |
+| First pass | 1 | 25 | 13 / 12 |
+| Highres, denoise 0.3 | 1 | 10 | 7 / 3 |
+| Detailer, denoise 0.3 | 2 | 9 | 7 / 2 |
+| USDU tile, denoise 0.2 | 9 | 8 | 6 / 2 |
+
+Every invocation restarted at step one, used actual forwards for its first
+three and final two steps, and used forecasts without cache vetoes.
+Disabled/all-actual RGB hashes match exactly:
+`8b5970f4e5b200cf66cb2f1baddbd929aa9140276d9d3b2184f68295e7031c08`.
+Forecast/repeat/explicit-logging hashes match exactly:
+`d14f0b279aa947bcc9c9b7287d6478f4bd9c144a25de5cd6fd393ddc6de47927`.
+These checks establish execution and repeatability for this fixture, not a
+representative speed or quality benchmark.
+
+The three changed UI owners matched the isolated instance's HTTP-served bytes.
+New live Legacy Canvas/Node 2.0 checks remain blocked by the previously observed
+browser access failure described below. Automated smokes passed; no new live
+UI verification is claimed. The test-only log probe and owned server were
+removed/stopped after validation. The user instance was not modified.
+
+## Initial patch
+
 Base: dev `1c3c4e96996d126b6bbd1b643cdb298b6d4cf2de`.
 Owned branch: `codex/aio-capability-adapters`.
 
@@ -52,7 +118,7 @@ explicit adapter or migration. Additional optional controls can be introduced
 without changing existing saved settings. Forecast acceleration, trained
 guidance and SPD are separate integrations; enabling one never enables another.
 
-## Validation
+## Initial-patch validation
 
 The required `full` gate passed on ComfyUI v0.42.1
 (`63be2f9b82ad0dac88a7ceaa28a9cf3154125a18`), frontend 1.55.18:

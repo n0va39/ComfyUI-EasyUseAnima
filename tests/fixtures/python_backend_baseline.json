@@ -50671,25 +50671,25 @@
           },
           {
             "async": false,
-            "end_line": 109,
+            "end_line": 113,
             "kind": "function",
             "line": 80,
-            "loc": 30,
+            "loc": 34,
             "qualified_name": "aio_feature_support"
           },
           {
             "async": false,
-            "end_line": 120,
+            "end_line": 124,
             "kind": "function",
-            "line": 112,
+            "line": 116,
             "loc": 9,
             "qualified_name": "aio_capability_manifest"
           }
         ],
         "is_package": false,
-        "loc": 123,
+        "loc": 127,
         "module": "easyuse_anima.aio.capabilities",
-        "normalized_git_blob_sha1": "6cf9da8cea9786eee0f31e2bed3233b0fabf0b8f",
+        "normalized_git_blob_sha1": "78974c528a8e7039e506d2241ceee3aaa0278046",
         "path": "easyuse_anima/aio/capabilities.py",
         "top_level": {
           "class_count": 0,

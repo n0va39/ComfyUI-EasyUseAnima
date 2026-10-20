@@ -1384,7 +1384,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         editor_end = source.index("\n  function openDetailerSettings", editor_start)
         editor_body = source[editor_start:editor_end]
         self.assertIn(
-            "createStageOptimizationEditor(`${title} Optimization`, target, defaults, generatorSettings(node).model_family)",
+            'createStageOptimizationEditor(`${title} Optimization`, target, defaults, generatorSettings(node).model_family, "detailer")',
             editor_body,
         )
         for field_contract in (

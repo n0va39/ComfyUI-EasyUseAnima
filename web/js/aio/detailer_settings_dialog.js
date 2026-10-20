@@ -61,7 +61,7 @@
  * @property {AioDetailerDialogControls} controls
  * @property {AioDetailerDialogText} text
  * @property {AioDetailerDialogSettingsCore} settingsCore
- * @property {(title: any, values: any, defaults: any, family?: string) => {section: any, values: () => any, setIntegratedMode?: (isIntegrated: boolean) => void}} stageOptimizationEditor
+ * @property {(title: any, values: any, defaults: any, family?: string, stage?: string) => {section: any, values: () => any, setIntegratedMode?: (isIntegrated: boolean) => void}} stageOptimizationEditor
  * @property {AioDetailerDialogNodeAdapter} nodeAdapter
  * @property {AioDetailerDialogDependencyAdapter} dependencyAdapter
  */
@@ -205,7 +205,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     const inpaintModel = field(detail, "Inpaint model", checkbox(target.inpaint_model));
     const tiledEncode = field(detail, "Tiled encode", checkbox(target.tiled_encode));
     const tiledDecode = field(detail, "Tiled decode", checkbox(target.tiled_decode));
-    const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults, generatorSettings(node).model_family);
+    const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults, generatorSettings(node).model_family, "detailer");
     const updateInheritedRows = () => {
       const display = inheritSampler.checked ? "none" : "";
       for (const control of [cfg, samplerName, scheduler]) {
