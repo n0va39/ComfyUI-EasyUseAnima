@@ -1,5 +1,68 @@
 # Model-specific AiO generators
 
+## Locale and compatibility audit
+
+- Base: `95500dc`, same owned worktree.
+- Scope: native node descriptions and locale entries, their contract tests,
+  and compatibility evidence; Spectrum remains a read-only upstream PR review.
+- Preserve: node IDs, `(model)` display names, socket IDs, saved settings,
+  runtime capabilities and user-instance isolation.
+- Checks: locale coverage, existing model/profile/serializer evidence, language
+  changes on Legacy and Node 2.0, and the final full gate after description edits.
+- Complete when new model entries expose translated descriptions and socket
+  help without changing serialized settings. Stop on runtime/data regression.
+
+Audit found two omissions: native MOSS/Krea2 locale entries contained only
+display names, and English node descriptions still claimed secondary stages
+and hooks were unavailable. Descriptions and socket help are now supplied in
+`ko`, `ja`, `zh` and `zh-CN`; English descriptions reflect the reviewed features.
+Locale tests now discover all `EasyUse*` mappings, including future non-Anima
+node names, and preserve the three `(model)` titles and public socket names.
+
+Validation: six focused locale tests and the full gate pass (1,761 Python tests,
+3 skipped, 126 JS files and TypeScript 6.0.3). The sandbox initially could not
+inspect CIM; the approved identical full command succeeds. `/api/i18n` returns
+all eight new-model locale entries exactly as in source; `/object_info` exposes
+the corrected English descriptions. Korean panel/tooltip switching works on
+Legacy and Node 2.0; Japanese and Chinese panels are exercised on Node 2.0,
+followed by English restoration. Saving/reloading after these changes preserves
+all three complete generation settings, including seeds and disabled features.
+The original English/Legacy preferences are restored. The unchanged execution
+pipeline reuses the preceding GPU/replay evidence; no new GPU run is required.
+
+### Upstream Krea2 Spectrum PR feasibility
+
+Read-only review on 2026-10-20: Spectrum upstream is still `1baeab6f`
+(v2.12.1), with no Krea issue/PR found. A dedicated acceleration-only adapter
+is feasible; the existing generic patch cannot be applied unchanged.
+
+Proposed first PR: add a `Krea2SpectrumPatch` MODEL-to-MODEL node in a separate
+`krea2.py`, reusing Spectrum's predictor and conservative branch/cache policy.
+Capture image-token features immediately before native Krea2's `last` head.
+On predicted steps, run the native `tmlp` and `last`, then reconstruct patches,
+crop padding and restore the optional temporal dimension. Preserve the user's
+sampler, CFG, FLUX shift and sigma schedule. No Mod Guidance, trained adapter,
+DCW/SPD, or automatic compilation is required for this acceleration-only path.
+
+Reference: [native head and output reconstruction](https://github.com/Comfy-Org/ComfyUI/blob/63be2f9b82ad0dac88a7ceaa28a9cf3154125a18/comfy/ldm/krea2/model.py#L367),
+[Spectrum cache policy](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/blob/1baeab6f9ee94a75011353c6ef41963888cc8979/spectrum.py#L221).
+
+The hard part is validation: captured-feature head equivalence across dtypes,
+CFG branch isolation, shape changes, repeated queues, exception cleanup and
+VRAM/offload behavior. Reference inputs and unsupported wrapper combinations
+can initially use actual forwards. Test cache-off numerical equivalence
+separately from cache-on quality and speed; identical cache-on pixels are not
+the expected contract.
+
+Turbo's eight steps have no forecast opportunity with warmup six plus tail
+three. Shorter warmup/low-degree presets need experiments and cannot promise
+useful speedups. RAW offers a longer schedule to establish the method first.
+An image-feature history at 1024 square costs roughly 48 MiB per BF16 sample
+before fitting buffers, making memory limits relevant on a 16 GiB GPU.
+Implementation is a few hundred lines plus tests; overall difficulty is
+medium-high because useful acceleration is less certain than basic execution.
+No Spectrum code, PR, additional weights or GPU benchmark was created here.
+
 ## Compatible extras revision
 
 - Base: `7a9fc36`, continuing the same owned branch and worktree.

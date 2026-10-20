@@ -348,7 +348,9 @@ class EasyUseMossAIOGenerator(EasyUseAnimaAIOGenerator):
     DESCRIPTION = (
         "MOSS txt2img with core ComfyUI KSampler. Use Easy Use Anima Input with "
         "native MOSS-Image, Qwen3.5 9B, CLIP type moss_image and FLUX.2 VAE. "
-        "Anima patches, Spectrum, AiO hooks and secondary stages are unavailable."
+        "Supports Highres, SAM3 Detailer, USDU/ResShift, Artist Mix, generic AiO "
+        "hooks, SageAttention and FP16 accumulation. NegPip requires native-MOSS "
+        "ComfyUI-ppm support. Anima patches, Spectrum and TorchCompile are unavailable."
     )
 
 
@@ -360,8 +362,9 @@ class EasyUseKrea2AIOGenerator(EasyUseAnimaAIOGenerator):
         "Krea2 txt2img with core ComfyUI KSampler. Defaults target Turbo: "
         "8 steps, CFG 1, Euler/simple, native Flux shift 1.15. Use Easy Use Anima "
         "Input with Krea2, Qwen3-VL 4B, CLIP type krea2 and Qwen Image VAE. "
-        "RAW requires its own sampling settings. Anima patches, Spectrum, "
-        "AiO hooks and secondary stages are unavailable."
+        "RAW requires its own sampling settings. Supports Highres, SAM3 Detailer, "
+        "USDU/ResShift, Artist Mix, generic AiO hooks and KJ optimizations. "
+        "Anima patches, Spectrum and NegPip are unavailable."
     )
 
 

@@ -1294,9 +1294,75 @@
     }
   },
   "EasyUseMossAIOGenerator": {
-    "display_name": "AiO Generator (MOSS)"
+    "display_name": "AiO Generator (MOSS)",
+    "description": "使用 ComfyUI 原生 KSampler 的 MOSS 专用 AiO 生成节点。支持 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、通用 AiO hook 和 KJ 优化。各模型的支持范围请参阅节点提示。",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "来自 Easy Use Anima Input 节点的专用上下文。"
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "存储生成设置的隐藏版本化 JSON。请保留工作流中的序列化数据。"
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "可选的 EASYUSE_ANIMA_AIO_HOOK 输入。请连接按照公开指南创建的扩展。"
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "可选的 LORA_STACK。请连接与所选模型兼容的 LoRA。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "经 VAE 解码的生成图像。"
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "采样后的 LATENT。"
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "用于调试或下游集成的生成元数据 JSON。"
+      }
+    }
   },
   "EasyUseKrea2AIOGenerator": {
-    "display_name": "AiO Generator (Krea2)"
+    "display_name": "AiO Generator (Krea2)",
+    "description": "使用 ComfyUI 原生 KSampler 的 Krea2 专用 AiO 生成节点。支持 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、通用 AiO hook 和 KJ 优化。各模型的支持范围请参阅节点提示。",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "来自 Easy Use Anima Input 节点的专用上下文。"
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "存储生成设置的隐藏版本化 JSON。请保留工作流中的序列化数据。"
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "可选的 EASYUSE_ANIMA_AIO_HOOK 输入。请连接按照公开指南创建的扩展。"
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "可选的 LORA_STACK。请连接与所选模型兼容的 LoRA。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "经 VAE 解码的生成图像。"
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "采样后的 LATENT。"
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "用于调试或下游集成的生成元数据 JSON。"
+      }
+    }
   }
 }

@@ -60753,9 +60753,9 @@
           }
         ],
         "is_package": false,
-        "loc": 371,
+        "loc": 374,
         "module": "easyuse_anima.nodes.aio_nodes",
-        "normalized_git_blob_sha1": "49ca350b9225c74178863d1ded6d7a2942cfb493",
+        "normalized_git_blob_sha1": "381795baa4bfa55acbd0ab2fd008dbb1b42f74f3",
         "path": "easyuse_anima/nodes/aio_nodes.py",
         "top_level": {
           "class_count": 4,

@@ -1294,9 +1294,75 @@
     }
   },
   "EasyUseMossAIOGenerator": {
-    "display_name": "AiO Generator (MOSS)"
+    "display_name": "AiO Generator (MOSS)",
+    "description": "ComfyUI 標準 KSampler を使う MOSS 専用 AiO 生成ノードです。Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、汎用 AiO hook、KJ 最適化に対応します。モデル別の対応範囲はノードの案内を確認してください。",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "Easy Use Anima Input ノードから受け取る専用コンテキストです。"
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "生成設定を保存する非表示のバージョン付き JSON です。ワークフローへの保存を維持してください。"
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "任意の EASYUSE_ANIMA_AIO_HOOK 入力です。公開ガイドに従って作成した拡張を接続します。"
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "任意の LORA_STACK です。選択したモデルと互換性のある LoRA を接続してください。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "VAE でデコードした生成画像です。"
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "サンプリングで得られた LATENT です。"
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "デバッグや後続ノードとの連携に使う生成メタデータ JSON です。"
+      }
+    }
   },
   "EasyUseKrea2AIOGenerator": {
-    "display_name": "AiO Generator (Krea2)"
+    "display_name": "AiO Generator (Krea2)",
+    "description": "ComfyUI 標準 KSampler を使う Krea2 専用 AiO 生成ノードです。Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、汎用 AiO hook、KJ 最適化に対応します。モデル別の対応範囲はノードの案内を確認してください。",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "Easy Use Anima Input ノードから受け取る専用コンテキストです。"
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "生成設定を保存する非表示のバージョン付き JSON です。ワークフローへの保存を維持してください。"
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "任意の EASYUSE_ANIMA_AIO_HOOK 入力です。公開ガイドに従って作成した拡張を接続します。"
+      },
+      "lora_stack": {
+        "name": "lora_stack",
+        "tooltip": "任意の LORA_STACK です。選択したモデルと互換性のある LoRA を接続してください。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "VAE でデコードした生成画像です。"
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "サンプリングで得られた LATENT です。"
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "デバッグや後続ノードとの連携に使う生成メタデータ JSON です。"
+      }
+    }
   }
 }
