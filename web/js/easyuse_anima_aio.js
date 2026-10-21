@@ -24,7 +24,10 @@ import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
-import { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile, aioModelProfile } from "./aio/model_profiles.js";
+import {
+  AIO_GENERATOR_MODEL_PROFILES, AIO_MODEL_CAPABILITY_SPECS,
+  aioGeneratorModelProfile, aioModelProfile, aioUpdateModelCapabilities,
+} from "./aio/model_profiles.js";
 import { createAioSeedTransaction } from "./aio/executed_seed_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
@@ -193,9 +196,13 @@ const AIO_TEXT = {
     "label.denoise": "Denoise",
     "label.sampler": "Sampler",
     "label.modelFamily": "Model family",
-    "text.modelUnsupported": "{model} supports Highres, Detailer, Upscale, Artist Mix, hooks and KJ optimizations. Mod Guidance, DAVE, Safe PAG, Spectrum / SPD and DiT corrections are unavailable.",
+    "text.modelUnsupported": "{model} supports Highres, Detailer, Upscale, Artist Mix, hooks and KJ optimizations. Mod Guidance, DAVE, Safe PAG, Spectrum Advanced / SPD and DiT corrections are unavailable.",
     "text.modelTorchCompileUnsupported": "TorchCompile is unavailable for {model}. KJ SageAttention and FP16 accumulation remain available.",
     "text.modelSpectrumUnsupported": "Spectrum / SPD is currently unavailable for {model}. Use the core ComfyUI KSampler backend.",
+    "text.modelSpectrumMissing": "Native Spectrum for {model} requires the compatible NativeMossSpectrumPatch adapter from ComfyUI-Spectrum-KSampler.",
+    "text.modelSpectrumIncompatible": "The installed Spectrum adapter is incompatible with native {model}. Update ComfyUI-Spectrum-KSampler to a compatible adapter.",
+    "text.modelSpectrumStageUnsupported": "Spectrum for {model} is unavailable in this sampling stage.",
+    "text.modelCorrectionsUnsupported": "DiT corrections are unavailable for {model}.",
     "text.mossRequirements": "MOSS Image: select resources on the Input node — CLIP type moss_image, Qwen3.5-9B text encoder and FLUX.2 VAE. NegPip requires ComfyUI-ppm with native MOSS support. TorchCompile is unavailable for MOSS. KJ SageAttention and FP16 accumulation remain available.",
     "text.kreaRequirements": "Krea2: select CLIP type krea2, Qwen3-VL-4B and the qwen_image_vae.safetensors (Wan 2.1 VAE) on the Input node. Defaults target Krea2 Turbo: 8 steps, CFG 1, Euler / Simple, shift 1.15. Adjust sampling for RAW weights. NegPip is unavailable for Krea2.",
     "text.modelMismatch": "Saved settings belong to {saved}. Use AiO Generator ({saved}); this {model} node cannot run them. Settings are preserved.",
@@ -556,9 +563,13 @@ const AIO_TEXT = {
     "label.denoise": "디노이즈",
     "label.sampler": "샘플러",
     "label.modelFamily": "모델 계열",
-    "text.modelUnsupported": "{model}은 Highres, Detailer, Upscale, Artist Mix, hooks, KJ 최적화를 지원합니다. Mod Guidance, DAVE, Safe PAG, Spectrum / SPD 및 DiT 보정은 지원하지 않습니다.",
+    "text.modelUnsupported": "{model}은 Highres, Detailer, Upscale, Artist Mix, hooks, KJ 최적화를 지원합니다. Mod Guidance, DAVE, Safe PAG, Spectrum Advanced / SPD 및 DiT 보정은 지원하지 않습니다.",
     "text.modelTorchCompileUnsupported": "{model}에서는 TorchCompile을 지원하지 않습니다. KJ SageAttention과 FP16 accumulation은 사용할 수 있습니다.",
     "text.modelSpectrumUnsupported": "{model}에서는 현재 Spectrum / SPD를 지원하지 않습니다. ComfyUI 기본 KSampler를 사용하세요.",
+    "text.modelSpectrumMissing": "{model}의 네이티브 Spectrum에는 ComfyUI-Spectrum-KSampler의 호환 NativeMossSpectrumPatch 어댑터가 필요합니다.",
+    "text.modelSpectrumIncompatible": "설치된 Spectrum 어댑터는 네이티브 {model}과 호환되지 않습니다. ComfyUI-Spectrum-KSampler를 호환 어댑터 버전으로 업데이트하세요.",
+    "text.modelSpectrumStageUnsupported": "{model}의 이 샘플링 단계에서는 Spectrum을 지원하지 않습니다.",
+    "text.modelCorrectionsUnsupported": "{model}에서는 DiT 보정을 지원하지 않습니다.",
     "text.mossRequirements": "MOSS Image: Input 노드에서 CLIP 유형 moss_image, Qwen3.5-9B 텍스트 인코더, FLUX.2 VAE를 선택하세요. NegPip은 네이티브 MOSS를 지원하는 최신 ComfyUI-ppm이 필요합니다. MOSS에서는 TorchCompile을 지원하지 않습니다. KJ SageAttention과 FP16 accumulation은 사용할 수 있습니다.",
     "text.kreaRequirements": "Krea2: Input 노드에서 CLIP 유형 krea2, Qwen3-VL-4B, qwen_image_vae.safetensors (Wan 2.1 VAE)를 선택하세요. 기본값은 Krea2 Turbo용 8 steps, CFG 1, Euler / Simple, shift 1.15입니다. RAW 모델은 샘플링 설정을 조정하세요. Krea2에서는 NegPip을 지원하지 않습니다.",
     "text.modelMismatch": "저장된 설정은 {saved}용입니다. AiO Generator ({saved})를 사용하세요. 이 {model} 노드에서는 실행할 수 없으며 설정은 보존됩니다.",
@@ -919,9 +930,13 @@ const AIO_TEXT = {
     "label.denoise": "デノイズ",
     "label.sampler": "サンプラー",
     "label.modelFamily": "モデル系統",
-    "text.modelUnsupported": "{model} は Highres、Detailer、Upscale、Artist Mix、hooks、KJ 最適化に対応。Mod Guidance、DAVE、Safe PAG、Spectrum / SPD、DiT corrections は未対応です。",
+    "text.modelUnsupported": "{model} は Highres、Detailer、Upscale、Artist Mix、hooks、KJ 最適化に対応。Mod Guidance、DAVE、Safe PAG、Spectrum Advanced / SPD、DiT corrections は未対応です。",
     "text.modelTorchCompileUnsupported": "{model} は TorchCompile 未対応です。KJ SageAttention と FP16 accumulation は利用できます。",
     "text.modelSpectrumUnsupported": "{model} は現在 Spectrum / SPD に未対応です。ComfyUI 標準 KSampler を使用してください。",
+    "text.modelSpectrumMissing": "{model} の native Spectrum には ComfyUI-Spectrum-KSampler の互換 NativeMossSpectrumPatch アダプターが必要です。",
+    "text.modelSpectrumIncompatible": "インストール済みの Spectrum アダプターは native {model} と互換性がありません。互換バージョンに更新してください。",
+    "text.modelSpectrumStageUnsupported": "{model} のこのサンプリングステージでは Spectrum は未対応です。",
+    "text.modelCorrectionsUnsupported": "{model} は DiT corrections に未対応です。",
     "text.mossRequirements": "MOSS Image: Input で CLIP type moss_image、Qwen3.5-9B text encoder、FLUX.2 VAE を選択してください。 NegPip は native MOSS 対応の ComfyUI-ppm が必要です。 MOSS は TorchCompile 未対応です。KJ SageAttention と FP16 accumulation は利用できます。",
     "text.kreaRequirements": "Krea2: Input で CLIP type krea2、Qwen3-VL-4B、qwen_image_vae.safetensors (Wan 2.1 VAE) を選択。初期値は Turbo 用: 8 steps、CFG 1、Euler / Simple、shift 1.15。RAW は調整してください。 Krea2 は NegPip 未対応です。",
     "text.modelMismatch": "設定は {saved} 用です。AiO Generator ({saved}) を使ってください。{model} ノードでは実行できません。設定は保持されます。",
@@ -1041,9 +1056,13 @@ const AIO_TEXT = {
     "label.denoise": "降噪",
     "label.sampler": "采样器",
     "label.modelFamily": "模型系列",
-    "text.modelUnsupported": "{model} 支持 Highres、Detailer、Upscale、Artist Mix、hooks 和 KJ 优化。不支持 Mod Guidance、DAVE、Safe PAG、Spectrum / SPD 和 DiT corrections。",
+    "text.modelUnsupported": "{model} 支持 Highres、Detailer、Upscale、Artist Mix、hooks 和 KJ 优化。不支持 Mod Guidance、DAVE、Safe PAG、Spectrum Advanced / SPD 和 DiT corrections。",
     "text.modelTorchCompileUnsupported": "{model} 不支持 TorchCompile。KJ SageAttention 和 FP16 accumulation 仍可使用。",
     "text.modelSpectrumUnsupported": "{model} 目前不支持 Spectrum / SPD。请使用 ComfyUI 原生 KSampler。",
+    "text.modelSpectrumMissing": "{model} 原生 Spectrum 需要 ComfyUI-Spectrum-KSampler 的兼容 NativeMossSpectrumPatch 适配器。",
+    "text.modelSpectrumIncompatible": "已安装的 Spectrum 适配器与原生 {model} 不兼容。请将 ComfyUI-Spectrum-KSampler 更新为兼容版本。",
+    "text.modelSpectrumStageUnsupported": "{model} 的此采样阶段不支持 Spectrum。",
+    "text.modelCorrectionsUnsupported": "{model} 不支持 DiT corrections。",
     "text.mossRequirements": "MOSS Image：请在 Input 节点选择 CLIP type moss_image、Qwen3.5-9B 文本编码器和 FLUX.2 VAE。 NegPip 需要支持原生 MOSS 的 ComfyUI-ppm。 MOSS 不支持 TorchCompile。KJ SageAttention 和 FP16 accumulation 仍可使用。",
     "text.kreaRequirements": "Krea2：在 Input 节点选择 CLIP type krea2、Qwen3-VL-4B 和 qwen_image_vae.safetensors (Wan 2.1 VAE)。默认参数适用于 Turbo：8 steps、CFG 1、Euler / Simple、shift 1.15。RAW 模型需调整采样参数。 Krea2 不支持 NegPip。",
     "text.modelMismatch": "保存的设置属于 {saved}。请使用 AiO Generator ({saved})；此 {model} 节点无法运行这些设置，设置将保留。",
@@ -2147,8 +2166,9 @@ function loadGeneratorSamplerOptions() {
 }
 
 async function fetchGeneratorOptionalDependencies() {
+  aioUpdateModelCapabilities({});
   const next = await aioQueryOptionalDependencies(
-    AIO_OPTIONAL_DEPENDENCY_SPECS,
+    { ...AIO_OPTIONAL_DEPENDENCY_SPECS, ...AIO_MODEL_CAPABILITY_SPECS },
     async (spec) => {
       const data = await easyuseAnimaFetchComfyJson(api, `/object_info/${encodeURIComponent(spec.nodeId)}`);
       return data?.[spec.nodeId] || null;
@@ -2158,6 +2178,7 @@ async function fetchGeneratorOptionalDependencies() {
   generatorOptionalDependencyState.status = next.status;
   generatorOptionalDependencyState.nodeInfo = next.nodeInfo;
   generatorOptionalDependencyState.errors = next.errors;
+  aioUpdateModelCapabilities(next.nodeInfo);
 }
 
 function notifyGeneratorMissingDependencies(backend, dependencyKeys) {

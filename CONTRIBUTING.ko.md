@@ -185,6 +185,13 @@ python -m json.tool locales/ko/nodeDefs.json
 
 수정한 언어에 맞게 경로를 바꿔 실행하면 됩니다.
 
+## 기여 라이선스
+
+별도로 명시적인 합의가 없는 새 기여는 GPL-3.0-or-later 조건으로 제출합니다.
+제삼자 코드를 수정하거나 포함할 때는 기존 저작권·라이선스 고지를 보존하고,
+PR에 출처와 라이선스를 명시해 주세요. MIT에서 GPL로의 전환 범위와
+보존된 고지는 [NOTICE](NOTICE)를 참고하세요.
+
 ## 유지보수자 전용 작업
 
 릴리즈 publish, Comfy Registry publish, version tag 생성, 이미 공개된 release

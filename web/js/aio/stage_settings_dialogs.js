@@ -68,7 +68,7 @@
  *
  * @param {AioStageSettingsDialogDependencies} dependencies
  * @returns {{
- *   createStageOptimizationEditor: (title: any, values: any, defaults: any, family?: string) => any,
+ *   createStageOptimizationEditor: (title: any, values: any, defaults: any, family?: string, stage?: string) => any,
  *   openHighresSettings: (node: any) => void,
  *   openUpscaleSettings: (node: any) => void,
  * }}
@@ -124,9 +124,13 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
-  function createStageOptimizationEditor(title, values, defaults, family = "anima") {
-    const profile = modelProfile(family);
-    const capabilities = profile.capabilities;
+  function createStageOptimizationEditor(title, values, defaults, family = "anima", stage = "highres") {
+    let profile = modelProfile(family);
+    let spectrumCapability = profile.feature("spectrum", stage);
+    let correctionCapability = profile.feature("dit_corrections", stage);
+    const nativeMoss = family === "moss_image";
+    const spectrumKey = nativeMoss ? "spectrumNativeMoss" : "spectrumPatch";
+    const spectrumAvailable = () => spectrumCapability.supported && optionalDependencyAvailable(spectrumKey);
     const section = document.createElement("section");
     section.className = "easyuse-anima-aio-section";
     section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
@@ -165,42 +169,56 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     dependencyWarning.className = "easyuse-anima-aio-warning";
     dependencyWarning.hidden = true;
     section.append(dependencyWarning);
+    const spectrumControls = [spectrumEnabled, windowSize, flexWindow, warmupSteps, tailSteps, blendW, chebyDegree, ridgeLambda, compatPolicy];
+    const correctionControls = [correctionsEnabled, dcwMode, dcwLambda, dcwBand, smcCfg, smcAlpha, smcLambda, cfgpp, cfgppLambda, fsg];
     const refreshDependencyLocks = () => {
-      if (!capabilities.spectrum || !capabilities.ditCorrections) {
-        for (const control of section.querySelectorAll("input, select, textarea, button")) {
-          control.disabled = true;
-          control.title = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
-        }
-        dependencyWarning.hidden = false;
-        dependencyWarning.textContent = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
-        return;
+      profile = modelProfile(family);
+      spectrumCapability = profile.feature("spectrum", stage);
+      correctionCapability = profile.feature("dit_corrections", stage);
+      const spectrumMissing = !optionalDependencyAvailable(spectrumKey);
+      const correctionMissing = !optionalDependencyAvailable("spectrumPatch");
+      const status = spectrumCapability.supported && spectrumMissing ? "missing_dependency" : spectrumCapability.status;
+      const spectrumReason = status === "missing_dependency" ? "text.modelSpectrumMissing"
+        : status === "incompatible" ? "text.modelSpectrumIncompatible"
+          : spectrumCapability.reason_code === "stage_not_supported" ? "text.modelSpectrumStageUnsupported"
+            : "text.modelSpectrumUnsupported";
+      const spectrumMessage = !spectrumCapability.supported || nativeMoss
+        ? aioFormat(spectrumReason, { model: profile.label })
+        : aioFormat("warning.optionalDependencyMissing", { backend: title, pack: optionalDependencyPack(spectrumKey) });
+      const correctionMessage = !correctionCapability.supported
+        ? aioFormat("text.modelCorrectionsUnsupported", { model: profile.label })
+        : aioFormat("warning.optionalDependencyMissing", { backend: title, pack: optionalDependencyPack("spectrumPatch") });
+      const spectrumLocked = !spectrumCapability.supported || (nativeMoss && spectrumMissing);
+      const correctionsLocked = !correctionCapability.supported;
+      aioMarkMissingDependencyControl(spectrumEnabled, spectrumMissing || !spectrumCapability.supported, spectrumMessage);
+      aioMarkMissingDependencyControl(correctionsEnabled, correctionMissing || correctionsLocked, correctionMessage);
+      for (const control of spectrumControls) {
+        control.disabled = spectrumLocked;
+        control.title = spectrumLocked || spectrumMissing ? spectrumMessage : "";
       }
-      const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
-      const message = aioFormat("warning.optionalDependencyMissing", {
-        backend: title,
-        pack: optionalDependencyPack("spectrumPatch"),
-      });
-      aioMarkMissingDependencyControl(spectrumEnabled, spectrumPatchMissing, message);
-      aioMarkMissingDependencyControl(correctionsEnabled, spectrumPatchMissing, message);
-      if (spectrumPatchMissing) {
-        spectrumEnabled.checked = false;
-        correctionsEnabled.checked = false;
-        dependencyWarning.hidden = false;
-        dependencyWarning.textContent = message;
-      } else {
-        dependencyWarning.hidden = true;
-        dependencyWarning.textContent = "";
+      for (const control of correctionControls) {
+        control.disabled = correctionsLocked;
+        control.title = correctionsLocked || correctionMissing ? correctionMessage : "";
       }
+      // Retain Anima's dependency behavior; unavailable native profiles keep
+      // their saved values visible and intact until their provider is available.
+      if (!nativeMoss && spectrumCapability.supported && spectrumMissing) spectrumEnabled.checked = false;
+      if (correctionCapability.supported && correctionMissing) correctionsEnabled.checked = false;
+      const messages = [];
+      if (!spectrumAvailable()) messages.push(spectrumMessage);
+      if (correctionsLocked || correctionMissing) messages.push(correctionMessage);
+      dependencyWarning.hidden = messages.length === 0;
+      dependencyWarning.textContent = messages.join(" ");
     };
-    const guardSpectrumToggle = (control) => {
-      if (control.checked && !optionalDependencyAvailable("spectrumPatch")) {
-        notifyMissingDependency(title, ["spectrumPatch"]);
+    const guardSpectrumToggle = (control, key) => {
+      if (control.checked && !optionalDependencyAvailable(key)) {
+        notifyMissingDependency(title, [key]);
         control.checked = false;
       }
       refreshDependencyLocks();
     };
-    spectrumEnabled.addEventListener("change", () => guardSpectrumToggle(spectrumEnabled));
-    correctionsEnabled.addEventListener("change", () => guardSpectrumToggle(correctionsEnabled));
+    spectrumEnabled.addEventListener("change", () => guardSpectrumToggle(spectrumEnabled, spectrumKey));
+    correctionsEnabled.addEventListener("change", () => guardSpectrumToggle(correctionsEnabled, "spectrumPatch"));
     refreshDependencyLocks();
     loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
 
@@ -215,12 +233,11 @@ export function aioCreateStageSettingsDialogs(dependencies) {
         }
       },
       values() {
-        if (!capabilities.spectrum || !capabilities.ditCorrections) {
-          return { spectrum: spectrumValues, dit_corrections: correctionValues };
-        }
+        refreshDependencyLocks();
         return {
-          spectrum: {
-            enabled: spectrumEnabled.checked && optionalDependencyAvailable("spectrumPatch"),
+          spectrum: !spectrumCapability.supported || (nativeMoss && !spectrumAvailable()) ? spectrumValues : {
+            ...spectrumValues,
+            enabled: spectrumEnabled.checked && optionalDependencyAvailable(spectrumKey),
             window_size: Number(windowSize.value || defaults.spectrum.window_size || 2),
             flex_window: Number(flexWindow.value || defaults.spectrum.flex_window || 0.25),
             warmup_steps: Number(warmupSteps.value || defaults.spectrum.warmup_steps || 6),
@@ -233,7 +250,8 @@ export function aioCreateStageSettingsDialogs(dependencies) {
             verbose: !!spectrumValues.verbose,
             compat_policy: compatPolicy.value || "conservative",
           },
-          dit_corrections: {
+          dit_corrections: !correctionCapability.supported ? correctionValues : {
+            ...correctionValues,
             enabled: correctionsEnabled.checked && optionalDependencyAvailable("spectrumPatch"),
             dcw_mode: dcwMode.value || "off",
             dcw_lambda: Number(dcwLambda.value || defaults.dit_corrections.dcw_lambda || 0.01),
@@ -310,7 +328,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), highres.scheduler)
     );
     const denoise = field(sampler, "Denoise", numberInput(highres.denoise, "0.01"));
-    const optimization = createStageOptimizationEditor("Highres Optimization", highres, DEFAULT_GENERATION_SETTINGS.highres, settings.model_family);
+    const optimization = createStageOptimizationEditor("Highres Optimization", highres, DEFAULT_GENERATION_SETTINGS.highres, settings.model_family, "highres");
     const updateInheritedRows = () => {
       const usesMain = inheritSampler.checked;
       const display = usesMain ? "none" : "";
@@ -475,7 +493,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       "tip.scheduler",
     );
     const denoise = field(usduSampler, "Denoise", numberInput(upscale.denoise, "0.01"), "tip.denoise");
-    const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale, settings.model_family);
+    const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale, settings.model_family, "upscale");
 
     const resshiftSection = document.createElement("section");
     resshiftSection.className = "easyuse-anima-aio-section";

@@ -7,13 +7,173 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from easyuse_anima.aio import (
-    first_pass_cache, generation_defaults, generation_normalization,
+    capabilities, first_pass_cache, generation_defaults, generation_normalization,
     legacy_generation, model_preparation, model_profiles, resources, sampling,
 )
 from tests.comfy_host_fakes import FakeComfyHostProvider, use_fake_comfy_host, patch_comfy_helper
 from easyuse_anima.nodes.aio_nodes import (
     EasyUseAnimaAIOGenerator, EasyUseMossAIOGenerator, EasyUseKrea2AIOGenerator,
 )
+
+
+class NativeMossProvider:
+    SPECTRUM_CAPABILITIES = {
+        **capabilities.NATIVE_MOSS_SPECTRUM_CONTRACT,
+        "stages": list(capabilities.SAMPLING_STAGES),
+    }
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "patch"
+
+    def patch(
+        self, model, steps, window_size, flex_window, warmup_steps,
+        tail_actual_steps, blend_w, cheby_degree, ridge_lambda, history_size,
+        enabled, one_sampler_only, verbose, compat_policy,
+    ):
+        return (("native", model, steps, compat_policy),)
+
+
+class AIOCapabilityTests(unittest.TestCase):
+    def settings(self, **overrides):
+        return generation_normalization._normalize_aio_generation_settings(
+            {"model_family": "moss_image", "sampler": {"spectrum": {"enabled": True}}, **overrides}
+        )
+
+    def test_missing_provider_and_unknown_contract_do_not_enable_forecasting(self):
+        for cls, status in ((None, "missing_dependency"), (object, "incompatible")):
+            support = capabilities.aio_feature_support(
+                "moss_image", "spectrum", node_lookup=lambda _: cls,
+            )
+            self.assertFalse(support["supported"])
+            self.assertEqual(support["status"], status)
+        marker = dict(NativeMossProvider.SPECTRUM_CAPABILITIES, contract_version=2)
+        with patch.object(NativeMossProvider, "SPECTRUM_CAPABILITIES", marker):
+            self.assertIsNone(capabilities.native_moss_spectrum_provider(lambda _: NativeMossProvider)[0])
+
+    def test_provider_requires_native_loader_forecast_stage_and_explicit_inputs(self):
+        for field, value in (
+            ("loader", "moss-image"), ("model_family", "krea2"),
+            ("features", ["mod_guidance"]), ("stages", ["highres"]),
+        ):
+            with self.subTest(field=field):
+                marker = dict(NativeMossProvider.SPECTRUM_CAPABILITIES, **{field: value})
+                with patch.object(NativeMossProvider, "SPECTRUM_CAPABILITIES", marker):
+                    self.assertEqual(
+                        capabilities.native_moss_spectrum_provider(lambda _: NativeMossProvider),
+                        (None, "incompatible"),
+                    )
+        with patch.object(NativeMossProvider, "patch", lambda self, **kwargs: None):
+            self.assertEqual(
+                capabilities.native_moss_spectrum_provider(lambda _: NativeMossProvider),
+                (None, "incompatible"),
+            )
+        with patch.object(NativeMossProvider, "RETURN_TYPES", ("IMAGE",)):
+            self.assertEqual(
+                capabilities.native_moss_spectrum_provider(lambda _: NativeMossProvider),
+                (None, "incompatible"),
+            )
+
+    def test_provider_availability_is_live_and_manifest_is_not_mutable_policy(self):
+        lookup = Mock(side_effect=[NativeMossProvider, None])
+        self.assertTrue(capabilities.aio_feature_support("moss_image", "spectrum", node_lookup=lookup)["supported"])
+        self.assertFalse(capabilities.aio_feature_support("moss_image", "spectrum", node_lookup=lookup)["supported"])
+        manifest = capabilities.aio_capability_manifest("moss_image", node_lookup=lambda _: NativeMossProvider)
+        manifest["features"]["spectrum"]["stages"].clear()
+        self.assertEqual(
+            capabilities.aio_feature_support("moss_image", "spectrum", node_lookup=lambda _: NativeMossProvider)["stages"],
+            list(capabilities.SAMPLING_STAGES),
+        )
+
+    def test_native_forecast_stages_do_not_unlock_other_features(self):
+        settings = self.settings()
+        original = copy.deepcopy(settings)
+        model_profiles.validate_aio_model_settings(settings, node_lookup=lambda _: NativeMossProvider)
+        self.assertEqual(settings, original)
+        for family, feature, stage in (
+            ("krea2", "spectrum", "sampler"),
+            ("moss_image", "mod_guidance", "sampler"), ("moss_image", "dit_corrections", "sampler"),
+        ):
+            with self.subTest(family=family, feature=feature, stage=stage):
+                self.assertFalse(capabilities.aio_feature_support(
+                    family, feature, stage, node_lookup=lambda _: NativeMossProvider,
+                )["supported"])
+        for stage in capabilities.SAMPLING_STAGES:
+            self.assertTrue(capabilities.aio_feature_support(
+                "moss_image", "spectrum", stage, node_lookup=lambda _: NativeMossProvider,
+            )["supported"])
+        for stage in ("highres", "upscale"):
+            settings[stage]["enabled"] = True
+            settings[stage]["spectrum"]["enabled"] = True
+        settings["detailer"]["enabled"] = True
+        settings["detailer"]["face"]["enabled"] = True
+        settings["detailer"]["face"]["spectrum"]["enabled"] = True
+        settings["detailer"]["custom"] = copy.deepcopy(settings["detailer"]["face"])
+        settings["detailer"]["order"].append("custom")
+        model_profiles.validate_aio_model_settings(settings, node_lookup=lambda _: NativeMossProvider)
+
+    def test_provider_stages_are_intersected_with_reviewed_stages(self):
+        marker = dict(
+            NativeMossProvider.SPECTRUM_CAPABILITIES,
+            stages=["sampler", "highres", "future_stage"],
+        )
+        with patch.object(NativeMossProvider, "SPECTRUM_CAPABILITIES", marker):
+            manifest = capabilities.aio_capability_manifest(
+                "moss_image", node_lookup=lambda _: NativeMossProvider,
+            )
+            self.assertEqual(manifest["features"]["spectrum"]["stages"], ["sampler", "highres"])
+            self.assertTrue(capabilities.aio_feature_support(
+                "moss_image", "spectrum", "highres", node_lookup=lambda _: NativeMossProvider,
+            )["supported"])
+            for stage in ("detailer", "upscale", "future_stage"):
+                support = capabilities.aio_feature_support(
+                    "moss_image", "spectrum", stage, node_lookup=lambda _: NativeMossProvider,
+                )
+                self.assertFalse(support["supported"])
+                self.assertEqual(support["reason_code"], "stage_not_supported")
+
+    def test_first_pass_only_provider_preserves_old_contract_and_saved_settings(self):
+        settings = self.settings()
+        settings["highres"]["enabled"] = True
+        settings["highres"]["spectrum"]["enabled"] = True
+        with patch.object(
+            NativeMossProvider, "SPECTRUM_CAPABILITIES",
+            capabilities.NATIVE_MOSS_SPECTRUM_CONTRACT,
+        ):
+            self.assertTrue(capabilities.aio_feature_support(
+                "moss_image", "spectrum", node_lookup=lambda _: NativeMossProvider,
+            )["supported"])
+            with self.assertRaisesRegex(ValueError, "stage_not_supported"):
+                model_profiles.validate_aio_model_settings(settings, node_lookup=lambda _: NativeMossProvider)
+            for stage in ("highres", "detailer", "upscale"):
+                self.assertFalse(capabilities.aio_feature_support(
+                    "moss_image", "spectrum", stage, node_lookup=lambda _: NativeMossProvider,
+                )["supported"])
+        settings["highres"]["enabled"] = False
+        model_profiles.validate_aio_model_settings(settings, node_lookup=lambda _: NativeMossProvider)
+        self.assertTrue(settings["highres"]["spectrum"]["enabled"])
+
+    def test_native_dispatch_uses_only_reviewed_provider_and_preserves_sampling(self):
+        model = SimpleNamespace(model=SimpleNamespace(
+            model_config=SimpleNamespace(unet_config={"image_model": "moss_image"}),
+            model_sampling=object(),
+        ))
+        sampling_before = model.model.model_sampling
+        with patch_comfy_helper(model_preparation, "_find_comfy_node_class", return_value=NativeMossProvider) as find:
+            result = model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler(
+                model, self.settings()["sampler"],
+            )
+        find.assert_called_once_with("NativeMossSpectrumPatch")
+        self.assertEqual(result, ("native", model, 25, "conservative"))
+        self.assertIs(model.model.model_sampling, sampling_before)
+        with patch_comfy_helper(model_preparation, "_find_comfy_node_class", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "missing_dependency"):
+                model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler(model, self.settings()["sampler"])
+
+    def test_object_info_manifest_does_not_change_serialized_defaults(self):
+        with patch.object(capabilities, "_find_provider", return_value=NativeMossProvider):
+            options = EasyUseMossAIOGenerator.INPUT_TYPES()["required"]["generation_settings"][1]
+        self.assertTrue(options["aio_capabilities"]["features"]["spectrum"]["supported"])
+        self.assertNotIn("aio_capabilities", json.loads(options["default"]))
+        self.assertFalse(json.loads(options["default"])["sampler"]["spectrum"]["enabled"])
 
 
 class AIOModelProfileTests(unittest.TestCase):

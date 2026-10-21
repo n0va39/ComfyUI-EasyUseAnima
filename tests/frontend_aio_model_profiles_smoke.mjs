@@ -5,7 +5,7 @@ async function moduleAt(path) {
   const source = readFileSync(new URL(path, import.meta.url), "utf8");
   return import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 }
-const { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile, aioModelProfile } = await moduleAt("../web/js/aio/model_profiles.js");
+const { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile, aioModelProfile, aioUpdateModelCapabilities } = await moduleAt("../web/js/aio/model_profiles.js");
 const {
   AIO_DEFAULT_GENERATION_SETTINGS,
   aioParseSettingsValue,
@@ -66,7 +66,7 @@ assert.equal(foreign.model_settings.anima.sampler.cfg, 99, "legacy inactive bank
 const exactSeed = aioParseSettingsValue('{"sampler":{"seed":18446744073709551615}}', AIO_DEFAULT_GENERATION_SETTINGS, "krea2");
 assert.equal(exactSeed.sampler.seed, "18446744073709551615");
 assert.equal(exactSeed.sampler.cfg, 1);
-console.log("AiO fixed model profiles smoke passed.");
+
 
 const entry = readFileSync(new URL("../web/js/easyuse_anima_aio.js", import.meta.url), "utf8");
 const kreaResourceHints = entry.split("\n").filter((line) => line.includes('"text.kreaRequirements":'));
@@ -82,4 +82,53 @@ assert.equal(explicit.highres.spectrum.enabled, true);
 assert.equal(explicit.detailer.custom_1.spectrum.enabled, true);
 
 assert.equal(aioModelProfile().family, "anima");
-assert.deepEqual(aioModelProfile("future-model"), {family: "future-model", label: "future-model", capabilities: {}});
+assert.equal(aioModelProfile("future-model").feature("spectrum", "sampler").supported, false);
+assert.deepEqual(aioModelProfile("future-model").capabilities, {});
+
+function modelInfo(family, features, contractVersion = 1) {
+  return { input: { required: { generation_settings: ["STRING", {
+    aio_capabilities: { contract_version: contractVersion, model_family: family, features },
+  }] } } };
+}
+const forecast = {
+  supported: true, status: "available", stages: ["sampler"],
+  provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch", reason_code: "",
+};
+const allStages = { supported: true, status: "available", stages: ["sampler", "highres", "detailer", "upscale"], provider: "", adapter: "", reason_code: "" };
+aioUpdateModelCapabilities({
+  modelProfile_moss_image: modelInfo("moss_image", { spectrum: forecast, artist_mix: allStages, aio_hook: allStages }),
+  modelProfile_anima: modelInfo("anima", { spectrum: allStages, mod_guidance: allStages }),
+});
+assert.equal(aioModelProfile("moss_image").feature("spectrum", "sampler").supported, true);
+assert.equal(aioModelProfile("moss_image").capabilities.spectrum, false, "legacy stage editors must remain conservative");
+assert.equal(aioModelProfile("moss_image").capabilities.artistMix, true);
+assert.equal(aioModelProfile("moss_image").capabilities.hooks, true);
+assert.equal(aioModelProfile("anima").capabilities.spectrum, true);
+assert.equal(aioModelProfile("anima").capabilities.modGuidance, true);
+assert.equal(aioModelProfile("krea2").feature("spectrum", "sampler").supported, false, "capability cache is separated by family");
+for (const stage of ["highres", "detailer", "upscale"]) {
+  const capability = aioModelProfile("moss_image").feature("spectrum", stage);
+  assert.equal(capability.supported, false);
+  assert.equal(capability.reason_code, "stage_not_supported");
+}
+for (const status of ["missing_dependency", "incompatible"]) {
+  aioUpdateModelCapabilities({modelProfile_moss_image: modelInfo("moss_image", {spectrum: {...forecast, supported: false, status, reason_code: `native_moss_adapter_${status}`}})});
+  assert.equal(aioModelProfile("moss_image").feature("spectrum", "sampler").supported, false);
+  assert.equal(aioModelProfile("moss_image").feature("spectrum", "sampler").status, status);
+}
+for (const invalid of [modelInfo("moss_image", {spectrum: forecast}, 2), modelInfo("krea2", {spectrum: forecast}), null]) {
+  aioUpdateModelCapabilities({modelProfile_moss_image: modelInfo("moss_image", {spectrum: forecast})});
+  assert.equal(aioModelProfile("moss_image").feature("spectrum", "sampler").supported, true);
+  aioUpdateModelCapabilities({modelProfile_moss_image: invalid});
+  assert.equal(aioModelProfile("moss_image").feature("spectrum", "sampler").supported, false, "invalid/missing capability reads invalidate old support");
+}
+const {aioQueryOptionalDependencies} = await moduleAt("../web/js/aio/dependencies.js");
+const profilesModule = await moduleAt("../web/js/aio/model_profiles.js");
+aioUpdateModelCapabilities({modelProfile_moss_image: modelInfo("moss_image", {spectrum: forecast})});
+const failedFetch = await aioQueryOptionalDependencies(profilesModule.AIO_MODEL_CAPABILITY_SPECS, async () => { throw new Error("offline"); });
+aioUpdateModelCapabilities(failedFetch.nodeInfo);
+assert.equal(aioModelProfile("moss_image").feature("spectrum", "sampler").supported, false, "network failures must revoke previously available runtime support");
+assert.match(entry, /async function fetchGeneratorOptionalDependencies\(\) \{\s*aioUpdateModelCapabilities\(\{\}\)/);
+assert.match(entry, /aioUpdateModelCapabilities\(next\.nodeInfo\)/);
+assert.match(entry, /\.\.\.AIO_OPTIONAL_DEPENDENCY_SPECS, \.\.\.AIO_MODEL_CAPABILITY_SPECS/);
+console.log("AiO fixed model profiles smoke passed.");
