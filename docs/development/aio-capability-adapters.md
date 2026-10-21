@@ -30,6 +30,15 @@ The older browser-blocked results below describe the earlier attempts only.
 
 The new tooltip regression smoke passed. Earlier GPU/CPU numerical evidence
 below remains applicable because this follow-up changes no sampling code.
+Final validation of code candidate `baf6f67` passed all 1,769 Python tests
+(three skips), architecture gates and frontend checks for 126 JavaScript files
+with TypeScript 6.0.3. The only initial failure was the `.comfyignore` comment's
+recorded hash; the official analyzer regenerated that single hash and its
+focused test passed before the final full run. Existing report-only Ruff and
+Pyright baseline findings remain unchanged.
+Comfy CLI 1.20.0 validation and packing passed. The 368-file archive includes
+LICENSE, LICENSE-MIT, NOTICE and both Safe PAG notices, with contents matching
+the source. No Registry publication or package installation was performed.
 The native Spectrum adapter remains a separate local dependency at `bed5a53`;
 Krea2 acceleration and MOSS Mod Guidance/SPD are still unsupported. Public
 merge/release and user-instance deployment are separate from this local work.
