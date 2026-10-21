@@ -25,12 +25,16 @@ Torch Compile은 Krea2에서 지원합니다. MOSS는 현재 네이티브 attent
 양자화 커널의 컴파일 호환성 문제로 비활성화되어 있습니다.
 MOSS NegPip은 네이티브 MOSS를 지원하는 ComfyUI-ppm이 필요하며, 실제 MODEL·CLIP
 패치가 적용됐는지 확인합니다. Krea2 NegPip은 아직 지원하지 않습니다.
-Anima Mod Guidance, DAVE, Safe PAG, Spectrum 가속 및 DiT 보정은 두 모델에서
-지원하지 않습니다. 이 제한은 Highres·Detailer·Upscale의 샘플링에도 적용됩니다.
-Spectrum 원본 2.12.1의 `MossSpectrumKSampler`는 별도 MOSS 로더의 구조·시간 스케일을
-사용하며, 범용 Spectrum 모델 패치도 Krea2의 출력 구조와 호환되지 않습니다.
-Upstream의 호환 패치가 검증된 뒤 가속을 연결하고, Mod Guidance는 해당 모델의
-학습된 adapter까지 지원될 때 별도로 추가합니다. 기존 Anima Spectrum 지원은 유지됩니다.
+MOSS Spectrum 예측 가속은 별도 설치된 Spectrum 제공자가 호환되는
+`NativeMossSpectrumPatch` 계약과 해당 단계 지원을 제공할 때 최초 생성,
+Highres, Detailer, USDU 샘플링에서 사용할 수 있습니다. 각 crop·tile은 새 예측
+상태로 시작합니다. 제공자가 없거나 구형이면 미지원 설정은 비활성화하고 저장값은 유지합니다.
+별도 로더용 `MossSpectrumKSampler`만으로는 이 계약을 충족하지 않습니다.
+검증한 네이티브 MOSS 어댑터는 별도 개발 패치이며, upstream 배포판에 포함됐다는
+의미는 아닙니다.
+Krea2 Spectrum 가속과 두 모델의 Anima Mod Guidance·DAVE·Safe PAG·DiT 보정,
+Advanced/SPD 샘플러 백엔드는 아직 지원하지 않습니다. 예측 가속 지원만으로
+이 기능들이 활성화되지는 않습니다. 기존 Anima Spectrum 지원은 유지됩니다.
 
 카테고리: `EasyUse Anima/AiO`
 

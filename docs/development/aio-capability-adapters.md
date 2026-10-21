@@ -1,5 +1,39 @@
 # AiO capability adapters
 
+## Completion follow-up, 2026-10-21
+
+The implementation at `18c3f44` remains the model/GPU baseline. This follow-up
+corrects a stale sampler compatibility-policy tooltip after asynchronous
+provider discovery and updates the Korean/English user guides to describe
+native MOSS forecasting in all four stages. Node IDs, v5 settings, model
+defaults and numerical execution are unchanged. The license transition is an
+independent commit with its scope and retained MIT material recorded in NOTICE.
+
+Live verification now passes in the in-app browser on ComfyUI v0.42.1
+(`63be2f9b82ad0dac88a7ceaa28a9cf3154125a18`), frontend 1.55.18.
+Chrome returned HTTP 403 while direct HTTP and the in-app browser worked.
+The older browser-blocked results below describe the earlier attempts only.
+
+- Legacy Canvas: MOSS first-pass, Highres, Face Detailer and USDU forecast
+  controls were enabled, applied and saved; unsupported corrections remained
+  disabled. First-pass warmup 3 and tail 2 survived a reload. The updated
+  compatibility-policy tooltip displayed the supported policy explanation.
+- Nodes 2.0: the same saved workflow restored all four forecast toggles and
+  warmup/tail values. Each stage dialog could apply its settings. Disk read-back
+  after saving matched all Anima, MOSS and Krea2 generator settings exactly.
+- Returning to Legacy and reloading retained the saved Highres forecast toggle.
+  The original Nodes 2.0 setting (off) was restored. No user-instance changes.
+- The HTTP-served sampler module matched the final source. Live object-info
+  advertised sampler/highres/detailer/upscale for the compatible native adapter.
+  No new console error was observed during the tested interactions; startup
+  Vite preload and core assets.seed message errors were present before testing.
+
+The new tooltip regression smoke passed. Earlier GPU/CPU numerical evidence
+below remains applicable because this follow-up changes no sampling code.
+The native Spectrum adapter remains a separate local dependency at `bed5a53`;
+Krea2 acceleration and MOSS Mod Guidance/SPD are still unsupported. Public
+merge/release and user-instance deployment are separate from this local work.
+
 ## Follow-up: all MOSS sampling stages
 
 Bases: AiO `0eaf778`, native Spectrum adapter `3cfbd05`.

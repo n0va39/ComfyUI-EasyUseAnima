@@ -1057,6 +1057,7 @@ function setMossCapability(status = "available", stages = ["sampler"]) {
     assert.equal(controlIn(spectrum, name).disabled, false, `${name} unlocks after manifest refresh`);
   }
   assert.equal(controlIn(spectrum, "Compat policy").disabled, false);
+  assert.equal(controlIn(spectrum, "Compat policy").title, "tooltip:spectrumNativeMoss:compat_policy", "resolved adapter replaces the stale unsupported tooltip");
   const corrections = sectionByHeading(dialog, "Spectrum Advanced Corrections");
   assert.ok(corrections.querySelectorAll("input, select").every((control) => control.disabled));
   assert.ok(fixture.supportedCalls.some((call) => call.key === "spectrumNativeMoss" && call.inputName === "window_size"));

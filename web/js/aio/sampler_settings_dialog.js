@@ -524,6 +524,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       dependencyWarning.hidden = messages.length === 0;
       dependencyWarning.textContent = messages.join(" ");
       spectrumCompat.disabled = !spectrumCapability.supported || (nativeMoss && !spectrumAvailable());
+      spectrumCompat.title = nodeInputTooltip(spectrumInputDependency, "compat_policy") || aioText("tip.spectrumCompat");
       if (!spectrumCapability.supported || (nativeMoss && !spectrumAvailable())) {
         for (const control of spectrum.querySelectorAll("input, select, textarea, button")) {
           control.disabled = true;

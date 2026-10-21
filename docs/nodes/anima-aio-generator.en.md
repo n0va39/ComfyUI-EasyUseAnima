@@ -27,13 +27,18 @@ Torch Compile is available for Krea2. MOSS Torch Compile is disabled because
 the current native attention and quantized kernels fail compilation.
 MOSS NegPip requires native-MOSS-capable ComfyUI-ppm; both MODEL and CLIP must
 report successful patching. Krea2 NegPip remains unsupported.
-Anima Mod Guidance, DAVE, Safe PAG, Spectrum acceleration and DiT corrections
-remain unavailable for both families, including secondary sampling stages.
-Upstream Spectrum 2.12.1's `MossSpectrumKSampler` targets a different MOSS loader
-and time-embedding contract. The generic Spectrum patch also cannot reconstruct
-Krea2's model output. Acceleration can be integrated after upstream supplies a
-compatible patch; Mod Guidance additionally needs trained family-specific
-support. Existing Anima Spectrum support is preserved.
+MOSS Spectrum forecasting supports first pass, Highres, Detailer and USDU
+sampling when a separately installed Spectrum provider exposes the compatible
+`NativeMossSpectrumPatch` contract and advertises those stages. Each crop or
+tile starts with fresh forecast state. Missing or older providers leave
+unsupported controls disabled and retain their saved values.
+This requires the native MOSS adapter; the separate-loader
+`MossSpectrumKSampler` does not satisfy the contract. The validated adapter is
+a separate development patch, not a claim of support in an upstream release.
+Krea2 Spectrum, Anima Mod Guidance, DAVE, Safe PAG, DiT corrections and the
+Advanced/SPD sampler backends remain unavailable for MOSS/Krea2 as applicable.
+Forecast support does not enable those independent features. Existing Anima
+Spectrum support is preserved.
 
 Category: `EasyUse Anima/AiO`
 
