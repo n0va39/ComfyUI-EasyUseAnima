@@ -115,6 +115,75 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_comfy_host_helper",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
+        "kind": "static_from",
+        "line": 8,
+        "name": "resolve_comfy_host_helper",
+        "optional": false,
+        "requested": "..infrastructure.comfy.wiring",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/capabilities.py",
+        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/aio/civitai_lookup.py"
       },
       {
@@ -9620,6 +9689,42 @@
       },
       {
         "alias": null,
+        "bound_name": "NATIVE_MOSS_SPECTRUM_NODE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".capabilities:NATIVE_MOSS_SPECTRUM_NODE",
+        "kind": "static_from",
+        "line": 18,
+        "name": "NATIVE_MOSS_SPECTRUM_NODE",
+        "optional": false,
+        "requested": ".capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "native_moss_spectrum_provider",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".capabilities:native_moss_spectrum_provider",
+        "kind": "static_from",
+        "line": 18,
+        "name": "native_moss_spectrum_provider",
+        "optional": false,
+        "requested": ".capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "alias": null,
         "bound_name": "StageModelPatchPlan",
         "branch_context": [],
         "classification": "internal",
@@ -9627,7 +9732,7 @@
         "conditional": false,
         "imported": ".generation_lifecycle:StageModelPatchPlan",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "StageModelPatchPlan",
         "optional": false,
         "requested": ".generation_lifecycle",
@@ -9645,7 +9750,7 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_GENERATION_STAGE_IDS",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "AIO_GENERATION_STAGE_IDS",
         "optional": false,
         "requested": ".generation_migrations",
@@ -9663,7 +9768,7 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_MODEL_PATCH_ORDER_REVISION",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "AIO_MODEL_PATCH_ORDER_REVISION",
         "optional": false,
         "requested": ".generation_migrations",
@@ -9681,7 +9786,7 @@
         "conditional": false,
         "imported": ".model_profiles:aio_model_profile",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "aio_model_profile",
         "optional": false,
         "requested": ".model_profiles",
@@ -9699,7 +9804,7 @@
         "conditional": false,
         "imported": ".safe_pag:NativeSafePAG",
         "kind": "static_from",
-        "line": 465,
+        "line": 466,
         "name": "NativeSafePAG",
         "optional": false,
         "requested": ".safe_pag",
@@ -9717,7 +9822,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 498
+            "line": 499
           }
         ],
         "classification": "external",
@@ -9725,7 +9830,7 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 499,
+        "line": 500,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
@@ -9800,6 +9905,24 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/aio/model_profiles.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "aio_feature_support",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".capabilities:aio_feature_support",
+        "kind": "static_from",
+        "line": 9,
+        "name": "aio_feature_support",
+        "optional": false,
+        "requested": ".capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_profiles.py",
+        "target": "easyuse_anima/aio/capabilities.py"
       },
       {
         "alias": null,
@@ -25054,6 +25177,24 @@
       },
       {
         "alias": null,
+        "bound_name": "aio_capability_manifest",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.capabilities:aio_capability_manifest",
+        "kind": "static_from",
+        "line": 7,
+        "name": "aio_capability_manifest",
+        "optional": false,
+        "requested": "..aio.capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/aio_nodes.py",
+        "target": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AIO_GENERATION_DEFAULT_SETTINGS",
         "branch_context": [],
         "classification": "internal",
@@ -25061,7 +25202,7 @@
         "conditional": false,
         "imported": "..aio.generation_defaults:AIO_GENERATION_DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AIO_GENERATION_DEFAULT_SETTINGS",
         "optional": false,
         "requested": "..aio.generation_defaults",
@@ -25079,7 +25220,7 @@
         "conditional": false,
         "imported": "..aio.generation_defaults:AIO_SPECIAL_SEEDS",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AIO_SPECIAL_SEEDS",
         "optional": false,
         "requested": "..aio.generation_defaults",
@@ -25097,7 +25238,7 @@
         "conditional": false,
         "imported": "..aio.generation_normalization:_normalize_aio_generation_settings",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_normalize_aio_generation_settings",
         "optional": false,
         "requested": "..aio.generation_normalization",
@@ -25115,7 +25256,7 @@
         "conditional": false,
         "imported": "..aio.hooks:EASYUSE_ANIMA_AIO_HOOK_TYPE",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "EASYUSE_ANIMA_AIO_HOOK_TYPE",
         "optional": false,
         "requested": "..aio.hooks",
@@ -25133,7 +25274,7 @@
         "conditional": false,
         "imported": "..aio.hooks:aio_hook_change_token",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "aio_hook_change_token",
         "optional": false,
         "requested": "..aio.hooks",
@@ -25151,7 +25292,7 @@
         "conditional": false,
         "imported": "..aio.input_context:_easy_use_anima_input_signature",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "_easy_use_anima_input_signature",
         "optional": false,
         "requested": "..aio.input_context",
@@ -25169,7 +25310,7 @@
         "conditional": false,
         "imported": "..aio.input_context:_require_easy_use_anima_input",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "_require_easy_use_anima_input",
         "optional": false,
         "requested": "..aio.input_context",
@@ -25187,7 +25328,7 @@
         "conditional": false,
         "imported": "..aio.input_defaults:AIO_INPUT_DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "AIO_INPUT_DEFAULT_SETTINGS",
         "optional": false,
         "requested": "..aio.input_defaults",
@@ -25205,7 +25346,7 @@
         "conditional": false,
         "imported": "..aio.input_defaults:ANIMA_DEFAULT_CLIP_CANDIDATES",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "ANIMA_DEFAULT_CLIP_CANDIDATES",
         "optional": false,
         "requested": "..aio.input_defaults",
@@ -25223,7 +25364,7 @@
         "conditional": false,
         "imported": "..aio.input_defaults:ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
         "optional": false,
         "requested": "..aio.input_defaults",
@@ -25241,7 +25382,7 @@
         "conditional": false,
         "imported": "..aio.input_defaults:ANIMA_DEFAULT_VAE_CANDIDATES",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "ANIMA_DEFAULT_VAE_CANDIDATES",
         "optional": false,
         "requested": "..aio.input_defaults",
@@ -25259,7 +25400,7 @@
         "conditional": false,
         "imported": "..aio.input_defaults:EASY_USE_ANIMA_INPUT_SCHEMA",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "EASY_USE_ANIMA_INPUT_SCHEMA",
         "optional": false,
         "requested": "..aio.input_defaults",
@@ -25277,7 +25418,7 @@
         "conditional": false,
         "imported": "..aio.input_defaults:EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
         "optional": false,
         "requested": "..aio.input_defaults",
@@ -25295,7 +25436,7 @@
         "conditional": false,
         "imported": "..aio.legacy_generation:_run_aio_generation_pipeline",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "_run_aio_generation_pipeline",
         "optional": false,
         "requested": "..aio.legacy_generation",
@@ -25313,7 +25454,7 @@
         "conditional": false,
         "imported": "..aio.model_preparation:_aio_lora_stack_signature",
         "kind": "static_from",
-        "line": 28,
+        "line": 29,
         "name": "_aio_lora_stack_signature",
         "optional": false,
         "requested": "..aio.model_preparation",
@@ -25331,7 +25472,7 @@
         "conditional": false,
         "imported": "..aio.model_profiles:aio_model_defaults",
         "kind": "static_from",
-        "line": 29,
+        "line": 30,
         "name": "aio_model_defaults",
         "optional": false,
         "requested": "..aio.model_profiles",
@@ -25349,7 +25490,7 @@
         "conditional": false,
         "imported": "..aio.resources:_comfy_clip_loader_types",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_comfy_clip_loader_types",
         "optional": false,
         "requested": "..aio.resources",
@@ -25367,7 +25508,7 @@
         "conditional": false,
         "imported": "..aio.resources:_comfy_diffusion_model_names",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_comfy_diffusion_model_names",
         "optional": false,
         "requested": "..aio.resources",
@@ -25385,7 +25526,7 @@
         "conditional": false,
         "imported": "..aio.resources:_comfy_text_encoder_names",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_comfy_text_encoder_names",
         "optional": false,
         "requested": "..aio.resources",
@@ -25403,7 +25544,7 @@
         "conditional": false,
         "imported": "..aio.resources:_comfy_vae_names",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_comfy_vae_names",
         "optional": false,
         "requested": "..aio.resources",
@@ -25421,7 +25562,7 @@
         "conditional": false,
         "imported": "..aio.resources:_normalize_aio_input_settings",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_normalize_aio_input_settings",
         "optional": false,
         "requested": "..aio.resources",
@@ -25439,7 +25580,7 @@
         "conditional": false,
         "imported": "..aio.resources:_preferred_clip_type_default",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_preferred_clip_type_default",
         "optional": false,
         "requested": "..aio.resources",
@@ -25457,7 +25598,7 @@
         "conditional": false,
         "imported": "..aio.resources:_preferred_name_default",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_preferred_name_default",
         "optional": false,
         "requested": "..aio.resources",
@@ -25475,7 +25616,7 @@
         "conditional": false,
         "imported": "..aio.sampling:_resolve_aio_runtime_seed",
         "kind": "static_from",
-        "line": 39,
+        "line": 40,
         "name": "_resolve_aio_runtime_seed",
         "optional": false,
         "requested": "..aio.sampling",
@@ -25493,7 +25634,7 @@
         "conditional": false,
         "imported": "..common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 40,
+        "line": 41,
         "name": "_stable_change_key",
         "optional": false,
         "requested": "..common.serialization",
@@ -25511,7 +25652,7 @@
         "conditional": false,
         "imported": "..prompt.data:PROMPT_DATA_TYPE",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "PROMPT_DATA_TYPE",
         "optional": false,
         "requested": "..prompt.data",
@@ -25529,7 +25670,7 @@
         "conditional": false,
         "imported": "..prompt.data:_copy_prompt_data_for_update",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_copy_prompt_data_for_update",
         "optional": false,
         "requested": "..prompt.data",
@@ -25547,7 +25688,7 @@
         "conditional": false,
         "imported": "..prompt.data:_normalize_prompt_data",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_normalize_prompt_data",
         "optional": false,
         "requested": "..prompt.data",
@@ -25565,7 +25706,7 @@
         "conditional": false,
         "imported": "..prompt.data:_prompt_data_json_safe",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_prompt_data_json_safe",
         "optional": false,
         "requested": "..prompt.data",
@@ -25583,7 +25724,7 @@
         "conditional": false,
         "imported": "..seed.reservation:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 47,
+        "line": 48,
         "name": "SEED_CONTROL_FIXED",
         "optional": false,
         "requested": "..seed.reservation",
@@ -25601,7 +25742,7 @@
         "conditional": false,
         "imported": ".seed_adapters:aio_seed_execution",
         "kind": "static_from",
-        "line": 48,
+        "line": 49,
         "name": "aio_seed_execution",
         "optional": false,
         "requested": ".seed_adapters",
@@ -46734,6 +46875,10 @@
         "to": "easyuse_anima/seed/__init__.py"
       },
       {
+        "from": "easyuse_anima/aio/capabilities.py",
+        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
         "from": "easyuse_anima/aio/civitai_lookup.py",
         "to": "easyuse_anima/aio/native_civitai.py"
       },
@@ -47191,6 +47336,10 @@
       },
       {
         "from": "easyuse_anima/aio/model_preparation.py",
+        "to": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/aio/generation_lifecycle.py"
       },
       {
@@ -47228,6 +47377,10 @@
       {
         "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/lora/prompt_syntax.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_profiles.py",
+        "to": "easyuse_anima/aio/capabilities.py"
       },
       {
         "from": "easyuse_anima/aio/native_image_output.py",
@@ -47936,6 +48089,10 @@
       {
         "from": "easyuse_anima/nodes/aio_hook_nodes.py",
         "to": "easyuse_anima/aio/hooks/__init__.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/aio_nodes.py",
+        "to": "easyuse_anima/aio/capabilities.py"
       },
       {
         "from": "easyuse_anima/nodes/aio_nodes.py",
@@ -49179,6 +49336,12 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/aio/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/capabilities.py"
         ]
       },
       {
@@ -50438,7 +50601,7 @@
     ]
   },
   "inventory": {
-    "module_count": 214,
+    "module_count": 215,
     "modules": [
       {
         "functions": [
@@ -50486,6 +50649,52 @@
           "class_count": 0,
           "function_count": 0,
           "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 43,
+            "kind": "function",
+            "line": 41,
+            "loc": 3,
+            "qualified_name": "_find_provider"
+          },
+          {
+            "async": false,
+            "end_line": 77,
+            "kind": "function",
+            "line": 46,
+            "loc": 32,
+            "qualified_name": "native_moss_spectrum_provider"
+          },
+          {
+            "async": false,
+            "end_line": 113,
+            "kind": "function",
+            "line": 80,
+            "loc": 34,
+            "qualified_name": "aio_feature_support"
+          },
+          {
+            "async": false,
+            "end_line": 124,
+            "kind": "function",
+            "line": 116,
+            "loc": 9,
+            "qualified_name": "aio_capability_manifest"
+          }
+        ],
+        "is_package": false,
+        "loc": 127,
+        "module": "easyuse_anima.aio.capabilities",
+        "normalized_git_blob_sha1": "78974c528a8e7039e506d2241ceee3aaa0278046",
+        "path": "easyuse_anima/aio/capabilities.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 4,
+          "global_count": 9
         }
       },
       {
@@ -53237,209 +53446,209 @@
         "functions": [
           {
             "async": false,
-            "end_line": 52,
+            "end_line": 53,
             "kind": "function",
-            "line": 39,
+            "line": 40,
             "loc": 14,
             "qualified_name": "_aio_safe_pag_in_stage"
           },
           {
             "async": false,
-            "end_line": 62,
+            "end_line": 63,
             "kind": "function",
-            "line": 55,
+            "line": 56,
             "loc": 8,
             "qualified_name": "_aio_sage_attention_mode"
           },
           {
             "async": false,
-            "end_line": 77,
+            "end_line": 78,
             "kind": "function",
-            "line": 65,
+            "line": 66,
             "loc": 13,
             "qualified_name": "_aio_sage_attention_in_stage"
           },
           {
             "async": false,
-            "end_line": 92,
+            "end_line": 93,
             "kind": "function",
-            "line": 80,
+            "line": 81,
             "loc": 13,
             "qualified_name": "_aio_stage_kj_settings"
           },
           {
             "async": false,
-            "end_line": 98,
+            "end_line": 99,
             "kind": "function",
-            "line": 95,
+            "line": 96,
             "loc": 4,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 106,
+            "end_line": 107,
             "kind": "function",
-            "line": 101,
+            "line": 102,
             "loc": 6,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 118,
+            "end_line": 119,
             "kind": "function",
-            "line": 109,
+            "line": 110,
             "loc": 10,
             "qualified_name": "_require_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 130,
+            "end_line": 131,
             "kind": "function",
-            "line": 121,
+            "line": 122,
             "loc": 10,
             "qualified_name": "_require_any_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 166,
+            "end_line": 167,
             "kind": "function",
-            "line": 133,
+            "line": 134,
             "loc": 34,
             "qualified_name": "_require_aio_sage_attention_class"
           },
           {
             "async": false,
-            "end_line": 187,
+            "end_line": 188,
             "kind": "function",
-            "line": 169,
+            "line": 170,
             "loc": 19,
             "qualified_name": "_patch_model_sampling_aura_flow"
           },
           {
             "async": false,
-            "end_line": 204,
+            "end_line": 205,
             "kind": "function",
-            "line": 190,
+            "line": 191,
             "loc": 15,
             "qualified_name": "_patch_aio_model_sampling"
           },
           {
             "async": false,
-            "end_line": 238,
+            "end_line": 239,
             "kind": "function",
-            "line": 207,
+            "line": 208,
             "loc": 32,
             "qualified_name": "_apply_aio_kj_non_compile_patches"
           },
           {
             "async": false,
-            "end_line": 267,
+            "end_line": 268,
             "kind": "function",
-            "line": 241,
+            "line": 242,
             "loc": 27,
             "qualified_name": "_apply_aio_kj_torch_compile_patch"
           },
           {
             "async": false,
-            "end_line": 272,
+            "end_line": 273,
             "kind": "function",
-            "line": 270,
+            "line": 271,
             "loc": 3,
             "qualified_name": "_apply_aio_kj_model_patches"
           },
           {
             "async": false,
-            "end_line": 344,
+            "end_line": 345,
             "kind": "function",
-            "line": 275,
+            "line": 276,
             "loc": 70,
             "qualified_name": "_aio_stage_model_patch_plan"
           },
           {
             "async": false,
-            "end_line": 380,
+            "end_line": 381,
             "kind": "function",
-            "line": 347,
+            "line": 348,
             "loc": 34,
             "qualified_name": "_apply_aio_stage_model_patch_plan"
           },
           {
             "async": false,
-            "end_line": 385,
+            "end_line": 386,
             "kind": "function",
-            "line": 383,
+            "line": 384,
             "loc": 3,
             "qualified_name": "_apply_aio_model_patches"
           },
           {
             "async": false,
-            "end_line": 398,
+            "end_line": 399,
             "kind": "function",
-            "line": 388,
+            "line": 389,
             "loc": 11,
             "qualified_name": "_aio_lora_stack_signature"
           },
           {
             "async": false,
-            "end_line": 437,
+            "end_line": 438,
             "kind": "function",
-            "line": 401,
+            "line": 402,
             "loc": 37,
             "qualified_name": "_apply_aio_lora_stack"
           },
           {
             "async": false,
-            "end_line": 461,
+            "end_line": 462,
             "kind": "function",
-            "line": 440,
+            "line": 441,
             "loc": 22,
             "qualified_name": "_apply_aio_anima_dave_patch"
           },
           {
             "async": false,
-            "end_line": 483,
+            "end_line": 484,
             "kind": "function",
-            "line": 464,
+            "line": 465,
             "loc": 20,
             "qualified_name": "_apply_aio_safe_pag_patch"
           },
           {
             "async": false,
-            "end_line": 508,
+            "end_line": 509,
             "kind": "function",
-            "line": 486,
+            "line": 487,
             "loc": 23,
             "qualified_name": "_cleanup_aio_ephemeral_model"
           },
           {
             "async": false,
-            "end_line": 569,
+            "end_line": 570,
             "kind": "function",
-            "line": 511,
+            "line": 512,
             "loc": 59,
             "qualified_name": "_apply_aio_spectrum_correction_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 616,
+            "end_line": 629,
             "kind": "function",
-            "line": 572,
-            "loc": 45,
+            "line": 573,
+            "loc": 57,
             "qualified_name": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 634,
+            "end_line": 647,
             "kind": "function",
-            "line": 619,
+            "line": 632,
             "loc": 16,
             "qualified_name": "_apply_aio_spectrum_model_patches_for_comfy_sampler"
           }
         ],
         "is_package": false,
-        "loc": 637,
+        "loc": 650,
         "module": "easyuse_anima.aio.model_preparation",
-        "normalized_git_blob_sha1": "1c22a21469ef6b128c90cff2b43118b2dbad01c6",
+        "normalized_git_blob_sha1": "27323765f7d875a0344295adce3f75a644e7dd79",
         "path": "easyuse_anima/aio/model_preparation.py",
         "top_level": {
           "class_count": 0,
@@ -53451,54 +53660,54 @@
         "functions": [
           {
             "async": false,
-            "end_line": 62,
+            "end_line": 54,
             "kind": "function",
-            "line": 59,
+            "line": 51,
             "loc": 4,
             "qualified_name": "aio_model_profile"
           },
           {
             "async": false,
-            "end_line": 87,
+            "end_line": 79,
             "kind": "function",
-            "line": 65,
+            "line": 57,
             "loc": 23,
             "qualified_name": "aio_model_defaults"
           },
           {
             "async": false,
-            "end_line": 145,
+            "end_line": 140,
             "kind": "function",
-            "line": 90,
-            "loc": 56,
+            "line": 82,
+            "loc": 59,
             "qualified_name": "validate_aio_model_settings"
           },
           {
             "async": false,
-            "end_line": 165,
+            "end_line": 160,
             "kind": "function",
-            "line": 148,
+            "line": 143,
             "loc": 18,
             "qualified_name": "validate_aio_model_resources"
           },
           {
             "async": false,
-            "end_line": 172,
+            "end_line": 167,
             "kind": "function",
-            "line": 168,
+            "line": 163,
             "loc": 5,
             "qualified_name": "validate_aio_model_dimensions"
           }
         ],
         "is_package": false,
-        "loc": 175,
+        "loc": 170,
         "module": "easyuse_anima.aio.model_profiles",
-        "normalized_git_blob_sha1": "c316bcb76539c04fb35ac1363624cf8e06892c2d",
+        "normalized_git_blob_sha1": "b3c8bae1054d3a72ae99f5d3eb5ab2e73d99c5bb",
         "path": "easyuse_anima/aio/model_profiles.py",
         "top_level": {
           "class_count": 1,
           "function_count": 5,
-          "global_count": 3
+          "global_count": 2
         }
       },
       {
@@ -60689,73 +60898,73 @@
         "functions": [
           {
             "async": false,
-            "end_line": 58,
+            "end_line": 59,
             "kind": "function",
-            "line": 53,
+            "line": 54,
             "loc": 6,
             "qualified_name": "_aio_input_settings_json"
           },
           {
             "async": false,
-            "end_line": 69,
+            "end_line": 70,
             "kind": "function",
-            "line": 61,
+            "line": 62,
             "loc": 9,
             "qualified_name": "_aio_generation_settings_json"
           },
           {
             "async": false,
-            "end_line": 129,
+            "end_line": 130,
             "kind": "method",
-            "line": 85,
+            "line": 86,
             "loc": 45,
             "qualified_name": "EasyUseAnimaInput.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 161,
+            "end_line": 162,
             "kind": "method",
-            "line": 136,
+            "line": 137,
             "loc": 26,
             "qualified_name": "EasyUseAnimaInput.IS_CHANGED"
           },
           {
             "async": false,
-            "end_line": 197,
+            "end_line": 198,
             "kind": "method",
-            "line": 163,
+            "line": 164,
             "loc": 35,
             "qualified_name": "EasyUseAnimaInput.build"
           },
           {
             "async": false,
-            "end_line": 258,
+            "end_line": 260,
             "kind": "method",
-            "line": 216,
-            "loc": 43,
+            "line": 217,
+            "loc": 44,
             "qualified_name": "EasyUseAnimaAIOGenerator.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 295,
+            "end_line": 297,
             "kind": "method",
-            "line": 266,
+            "line": 268,
             "loc": 30,
             "qualified_name": "EasyUseAnimaAIOGenerator.IS_CHANGED"
           },
           {
             "async": false,
-            "end_line": 341,
+            "end_line": 343,
             "kind": "method",
-            "line": 297,
+            "line": 299,
             "loc": 45,
             "qualified_name": "EasyUseAnimaAIOGenerator.generate"
           }
         ],
         "is_package": false,
-        "loc": 374,
+        "loc": 376,
         "module": "easyuse_anima.nodes.aio_nodes",
-        "normalized_git_blob_sha1": "381795baa4bfa55acbd0ab2fd008dbb1b42f74f3",
+        "normalized_git_blob_sha1": "fbd4e5d2cb6ba27edb0f002977ec9831ad2868e4",
         "path": "easyuse_anima/nodes/aio_nodes.py",
         "top_level": {
           "class_count": 4,
@@ -66583,6 +66792,39 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/capabilities.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/aio/civitai_lookup.py"
       },
       {
@@ -68407,14 +68649,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 498
+            "line": 499
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 499,
+        "line": 500,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -77168,7 +77410,7 @@
       }
     ],
     "ignore_file": ".comfyignore",
-    "ignore_file_normalized_git_blob_sha1": "e447b6d3726fe4e06da1bef09ed7b035dbd14aa8",
+    "ignore_file_normalized_git_blob_sha1": "00951c6511649cc8ace6bf60fe1c1a3ee2e1f557",
     "missing_internal_imports": [],
     "optional_imports": [
       {
@@ -77178,14 +77420,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 498
+            "line": 499
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 499,
+        "line": 500,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -78361,6 +78603,7 @@
       "__init__.py",
       "easyuse_anima/__init__.py",
       "easyuse_anima/aio/__init__.py",
+      "easyuse_anima/aio/capabilities.py",
       "easyuse_anima/aio/civitai_lookup.py",
       "easyuse_anima/aio/conditioning.py",
       "easyuse_anima/aio/execution_metadata.py",
@@ -78575,6 +78818,7 @@
       "__init__.py",
       "easyuse_anima/__init__.py",
       "easyuse_anima/aio/__init__.py",
+      "easyuse_anima/aio/capabilities.py",
       "easyuse_anima/aio/civitai_lookup.py",
       "easyuse_anima/aio/conditioning.py",
       "easyuse_anima/aio/execution_metadata.py",
@@ -79844,7 +80088,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 25,
+        "line": 26,
         "module": "easyuse_anima/aio/model_preparation.py",
         "scope": "<module>"
       },
@@ -79853,7 +80097,7 @@
         "column": 1,
         "context": "decorator:AIOModelProfile",
         "kind": "import_time_call",
-        "line": 10,
+        "line": 12,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -79862,7 +80106,7 @@
         "column": 13,
         "context": "assign:AIO_MODEL_PROFILES",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 30,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -79871,7 +80115,7 @@
         "column": 18,
         "context": "assign:AIO_MODEL_PROFILES",
         "kind": "import_time_call",
-        "line": 42,
+        "line": 36,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -79880,7 +80124,7 @@
         "column": 13,
         "context": "assign:AIO_MODEL_PROFILES",
         "kind": "import_time_call",
-        "line": 49,
+        "line": 42,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -81840,6 +82084,18 @@
       },
       {
         "kind": "dict",
+        "line": 27,
+        "module": "easyuse_anima/aio/capabilities.py",
+        "name": "NATIVE_MOSS_SPECTRUM_CONTRACT"
+      },
+      {
+        "kind": "dict",
+        "line": 20,
+        "module": "easyuse_anima/aio/capabilities.py",
+        "name": "_MODEL_FEATURES"
+      },
+      {
+        "kind": "dict",
         "line": 43,
         "module": "easyuse_anima/aio/generation_defaults.py",
         "name": "AIO_GENERATION_DEFAULT_SETTINGS"
@@ -81864,7 +82120,7 @@
       },
       {
         "kind": "dict",
-        "line": 35,
+        "line": 29,
         "module": "easyuse_anima/aio/model_profiles.py",
         "name": "AIO_MODEL_PROFILES"
       },

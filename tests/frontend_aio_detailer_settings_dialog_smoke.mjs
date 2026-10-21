@@ -332,9 +332,9 @@ function createFixture({
     return `custom_${Date.now()}`;
   }
 
-  function createStageOptimizationEditor(title, values, defaults, family) {
+  function createStageOptimizationEditor(title, values, defaults, family, stage) {
     dependencyCalls += 1;
-    stageCalls.push({ title, values: clone(values), defaults: clone(defaults), family });
+    stageCalls.push({ title, values: clone(values), defaults: clone(defaults), family, stage });
     const section = document.createElement("section");
     section.className = "test-stage-optimization";
     section.append(Object.assign(document.createElement("h4"), { textContent: `optimization:${title}` }));
@@ -850,6 +850,7 @@ for (const family of ["moss_image", "krea2"]) {
   const dialog = fixture.dialogs[0];
   findByText(dialog.body, "text:button.addDetailerBlock").emit("click");
   const custom = fixture.stageCalls.at(-1);
+  assert.ok(fixture.stageCalls.every(({stage}) => stage === "detailer"), "All detailer targets forward their sampling stage");
   assert.equal(custom.family, family, "custom blocks forward family to the shared optimization editor");
   assert.equal(custom.values.cfg, settings.sampler.cfg);
   assert.equal(custom.values.steps, settings.sampler.steps);

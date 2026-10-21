@@ -6,6 +6,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
 
+from .capabilities import aio_feature_support
+
 
 @dataclass(frozen=True)
 class AIOModelProfile:
@@ -22,14 +24,6 @@ class AIOModelProfile:
     sampler_name: str
     scheduler: str
     resource_hint: str
-    anima_features: bool = False
-    features: tuple[str, ...] = ()
-
-
-_COMMON_DIT_FEATURES = (
-    "highres", "detailer", "upscale", "sage_attention", "fp16_accumulation",
-    "artist_mix", "aio_hook",
-)
 
 
 AIO_MODEL_PROFILES = {
@@ -37,21 +31,19 @@ AIO_MODEL_PROFILES = {
         "Anima", "EasyUseAnimaAIOGenerator", "qwen_image", "EmptyLatentImage", 1,
         ("comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"),
         "ModelSamplingAuraFlow", 32, 5.0, 3.0, "er_sde", "simple",
-        "Anima diffusion model, Qwen3 0.6B encoder and Qwen Image VAE", True,
+        "Anima diffusion model, Qwen3 0.6B encoder and Qwen Image VAE",
     ),
     "moss_image": AIOModelProfile(
         "MOSS", "EasyUseMossAIOGenerator", "moss_image", "EmptyFlux2LatentImage", 16,
         ("comfy_ksampler",),
         "ModelSamplingAuraFlow", 25, 2.5, 5.0, "er_sde", "simple",
         "native MOSS-Image diffusion model, Qwen3.5 9B encoder and FLUX.2 VAE",
-        features=(*_COMMON_DIT_FEATURES, "negpip"),
     ),
     "krea2": AIOModelProfile(
         "Krea2", "EasyUseKrea2AIOGenerator", "krea2", "EmptyLatentImage", 16,
         ("comfy_ksampler",),
         "ModelSamplingFlux", 8, 1.0, 1.15, "euler", "simple",
         "Krea2 diffusion model, Qwen3-VL 4B encoder and Qwen Image VAE",
-        features=(*_COMMON_DIT_FEATURES, "torch_compile"),
     ),
 }
 
@@ -67,7 +59,7 @@ def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
     profile = aio_model_profile(family)
     result = deepcopy(defaults)
     result["model_family"] = family
-    if not profile.anima_features:
+    if family != "anima":
         result["sampler"].update(
             steps=profile.steps, cfg=profile.cfg,
             sampler_name=profile.sampler_name, scheduler=profile.scheduler,
@@ -87,7 +79,7 @@ def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
     return result
 
 
-def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> None:
+def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None, node_lookup=None) -> None:
     family = settings.get("model_family", "anima")
     profile = aio_model_profile(family)
     if settings["sampler"]["backend"] not in profile.sampler_backends:
@@ -100,7 +92,7 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> N
             f"[EasyUseAnima] {profile.name} does not support this sampler backend. "
             + detail
         )
-    if profile.anima_features:
+    if family == "anima":
         return
     patches = settings["model_patches"]
     unsupported = []
@@ -119,7 +111,7 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> N
         "aio_hook": ("AiO hook", aio_hook is not None),
     }
     for feature, (name, enabled) in checks.items():
-        if enabled and feature not in profile.features:
+        if enabled and not aio_feature_support(family, feature, node_lookup=node_lookup)["supported"]:
             unsupported.append(name)
     # Check every active sampling stage, including user-created detailer blocks.
     # Inactive saved values remain intact and do not drive execution.
@@ -136,8 +128,11 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> N
         })
     for stage_name, stage in stages.items():
         for feature, label in (("spectrum", "Spectrum model patch"), ("dit_corrections", "DiT corrections")):
-            if stage[feature]["enabled"] and feature not in profile.features:
-                unsupported.append(f"{stage_name}: {label}")
+            support = aio_feature_support(
+                family, feature, stage_name.split(".")[0], node_lookup=node_lookup,
+            )
+            if stage[feature]["enabled"] and not support["supported"]:
+                unsupported.append(f"{stage_name}: {label} ({support['reason_code']})")
     if unsupported:
         raise ValueError(
             f"[EasyUseAnima] {profile.name} cannot use these model-specific features. "

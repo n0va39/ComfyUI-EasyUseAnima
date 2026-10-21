@@ -189,6 +189,13 @@ python -m json.tool locales/ko/nodeDefs.json
 
 Adjust the path for the language you changed.
 
+## Contribution License
+
+New contributions to this project are submitted under GPL-3.0-or-later unless
+explicitly agreed otherwise. Preserve existing copyright and license notices
+when adapting third-party code, and identify its source and license in the PR.
+See [NOTICE](NOTICE) for the MIT-to-GPL transition and retained notices.
+
 ## Maintainer-Only Work
 
 Release publishing, Comfy Registry publishing, version tagging, and changes to

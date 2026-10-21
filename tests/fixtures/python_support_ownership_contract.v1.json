@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 228,
+    "expected_files": 229,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -44,6 +44,17 @@
         "runtime-bootstrap"
       ],
       "purpose": "Manual release-time fresh-process API and E-09 lifecycle matrix."
+    },
+    {
+      "execution_mode": "manual-on-trigger",
+      "generated": false,
+      "kind": "manual_live_matrix",
+      "owner": "docs/development/aio-capability-adapters.md",
+      "path": "docs/development/aio-capability-adapters.md",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Native provider and model capability API/GPU/dual-canvas validation."
     },
     {
       "execution_mode": "manual-on-trigger",

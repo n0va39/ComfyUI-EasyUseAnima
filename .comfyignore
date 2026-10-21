@@ -1,5 +1,5 @@
 # Comfy Registry package surface.
-# Keep runtime files plus README*, LICENSE, pyproject.toml, and requirements.txt.
+# Keep runtime files plus README*, LICENSE*, NOTICE, pyproject.toml, and requirements.txt.
 # Exclude docs, examples, tests, CI, generated media, and local-only artifacts.
 .github/
 docs/
