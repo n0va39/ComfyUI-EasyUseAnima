@@ -1,5 +1,44 @@
 # Release Notes
 
+## 1.7.0
+
+### Added
+
+- Model-aware acceleration controls follow the selected model, installed
+  provider and sampling stage. With a compatible native-MOSS Spectrum
+  adapter, MOSS forecasting works in the first pass, Highres, each Detailer
+  crop and each USDU tile.
+
+### Fixed
+
+- Compatibility help refreshes when optional provider detection finishes.
+  Existing Anima workflows and saved settings, including inactive options,
+  remain compatible across model and canvas changes.
+
+### License
+
+- This release adopts **GPL-3.0-or-later**. Previously distributed MIT code
+  retains its original permissions; `LICENSE-MIT` and third-party notices
+  are preserved. Subsequent GPL-only changes are not offered under MIT.
+- Redistribution must follow the included `LICENSE` and preserve `NOTICE`,
+  `LICENSE-MIT` and applicable third-party notices.
+
+### Compatibility
+
+- MOSS Spectrum forecasting requires a separately installed development
+  adapter providing `NativeMossSpectrumPatch`. It is not bundled and is not
+  guaranteed by the public upstream Spectrum release. Without a compatible
+  adapter, MOSS acceleration stays unavailable.
+- Krea2 acceleration and MOSS Mod Guidance/SPD remain unsupported. Use
+  ComfyUI **0.42.1 or newer** and the model files described in the
+  [generator guide](docs/nodes/anima-aio-generator.en.md).
+- Model weights and optional nodes are not bundled or automatically downloaded.
+
+### Update
+
+- Restart ComfyUI and hard-refresh the browser after updating. Review the
+  new license terms before redistributing this release or modified versions.
+
 ## 1.6.0
 
 ### Added

@@ -15,6 +15,7 @@ from ..infrastructure.comfy.invocation import (
 )
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..lora.prompt_syntax import _normalize_lora_stack as _normalize_aio_lora_stack
+from .capabilities import NATIVE_MOSS_SPECTRUM_NODE, native_moss_spectrum_provider
 from .generation_lifecycle import StageModelPatchPlan
 from .generation_migrations import (
     AIO_GENERATION_STAGE_IDS,
@@ -578,11 +579,21 @@ def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
         spectrum.get("enabled"), False
     ):
         return model
-    node_id, patch_cls = _require_any_custom_node_class(
-        ("DiTSpectrumPatchAdvanced", "DiTSpectrumPatch"),
-        "ComfyUI-Spectrum-KSampler",
-        "Repository: https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
-    )
+    config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", {})
+    family = config.get("image_model", "anima") if isinstance(config, dict) else "anima"
+    if family == "moss_image":
+        patch_cls, status = native_moss_spectrum_provider(_find_comfy_node_class)
+        node_id = NATIVE_MOSS_SPECTRUM_NODE
+        if patch_cls is None:
+            raise RuntimeError(f"[EasyUseAnima] Native MOSS Spectrum adapter is {status}.")
+    elif family not in ("anima", None):
+        raise ValueError(f"[EasyUseAnima] {family} Spectrum forecasting is not supported.")
+    else:
+        node_id, patch_cls = _require_any_custom_node_class(
+            ("DiTSpectrumPatchAdvanced", "DiTSpectrumPatch"),
+            "ComfyUI-Spectrum-KSampler",
+            "Repository: https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
+        )
     patcher = patch_cls()
     patch = getattr(patcher, "patch", None)
     if patch is None:
@@ -613,6 +624,8 @@ def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
     )
     if not values:
         raise RuntimeError(f"[EasyUseAnima] {node_id} returned no MODEL.")
+    if family == "moss_image" and len(values) != 1:
+        raise RuntimeError(f"[EasyUseAnima] {node_id} must return exactly one MODEL.")
     return values[0]
 
 

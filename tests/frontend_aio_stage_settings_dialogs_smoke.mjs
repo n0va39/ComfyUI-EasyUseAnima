@@ -734,21 +734,105 @@ function createFixture({
   assert.equal(JSON.parse(fixture.node.widgets[0].value).upscale.resshift.student_name, "(auto-download)");
 }
 
-console.log("AiO stage settings dialogs smoke passed.");
 
+
+modelProfilesModule.aioUpdateModelCapabilities({modelProfile_moss_image: {input: {required: {generation_settings: ["STRING", {aio_capabilities: {
+  contract_version: 1, model_family: "moss_image", features: {spectrum: {
+    supported: true, status: "available", stages: ["sampler"],
+    provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch", reason_code: "",
+  }},
+}}]}}}});
+assert.equal(modelProfilesModule.aioModelProfile("moss_image").feature("spectrum", "sampler").supported, true);
 for (const family of ["moss_image", "krea2"]) {
   const settings = settingsModule.aioGenerationDefaultsForFamily(family);
   const fixture = createFixture({ settings, available: { spectrumPatch: true }, deferLoads: true });
-  for (const stage of ["highres", "upscale"]) {
-    const values = clone(settings[stage]);
+  for (const stage of ["highres", "detailer", "upscale"]) {
+    const stageSettings = stage === "detailer" ? settings.detailer.face : settings[stage];
+    const values = clone(stageSettings);
     values.spectrum.enabled = true;
     values.dit_corrections.enabled = true;
-    const editor = fixture.runtime.createStageOptimizationEditor(stage, values, settings[stage], family);
+    const editor = fixture.runtime.createStageOptimizationEditor(stage, values, stageSettings, family, stage);
     fixture.resolveLoads();
     await flushPromises();
     assert.ok(editor.section.querySelectorAll("input, select, textarea, button").every((control) => control.disabled));
     assert.equal(rowByLabel(editor.section, "Spectrum patch").children[0].checked, true, "locked saved values remain visible");
     assert.deepEqual(editor.values(), { spectrum: values.spectrum, dit_corrections: values.dit_corrections });
-    assert.ok(findByText(editor.section, `format:text.modelSpectrumUnsupported:${JSON.stringify({ model: family === "krea2" ? "Krea2" : "MOSS" })}`));
+    assert.ok(findAll(editor.section, (element) => element.textContent.includes(family === "krea2" ? "text.modelSpectrumUnsupported" : "text.modelSpectrumStageUnsupported")).length);
   }
 }
+
+function setMossSpectrum(stages, status = "available") {
+  modelProfilesModule.aioUpdateModelCapabilities({modelProfile_moss_image: {input: {required: {generation_settings: ["STRING", {aio_capabilities: {
+    contract_version: 1, model_family: "moss_image", features: {spectrum: {
+      supported: status === "available", status, stages,
+      provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch",
+      reason_code: status === "incompatible" ? "native_moss_adapter_incompatible" : "native_moss_adapter_missing",
+    }},
+  }}]}}}});
+}
+const forecastLabels = ["Spectrum patch", "Window size", "Flex window", "Warmup", "Tail actual", "Blend W", "Cheby", "Ridge lambda", "Compat"];
+for (const stage of ["highres", "detailer", "upscale"]) {
+  modelProfilesModule.aioUpdateModelCapabilities({});
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  const values = clone(stage === "detailer" ? settings.detailer.face : settings[stage]);
+  values.spectrum.enabled = true;
+  values.spectrum.preserved_extension = "forecast";
+  values.dit_corrections.enabled = true;
+  values.dit_corrections.preserved_extension = "corrections";
+  const fixture = createFixture({settings, available: {spectrumNativeMoss: true, spectrumPatch: false}, deferLoads: true});
+  const editor = fixture.runtime.createStageOptimizationEditor(stage, values, values, "moss_image", stage);
+  const field = (label) => rowByLabel(editor.section, label).children[0];
+  assert.ok(forecastLabels.every((label) => field(label).disabled), "Pending capability locks every forecast control");
+  setMossSpectrum(["sampler", stage]);
+  fixture.resolveLoads();
+  await flushPromises();
+  assert.ok(forecastLabels.every((label) => !field(label).disabled), `${stage}: async stage capability unlocks all forecast controls`);
+  assert.equal(field("Use corrections").disabled, true, "Spectrum support never unlocks DCW");
+  assert.equal(field("Spectrum patch").parentElement.classList.contains("easyuse-anima-aio-unsupported"), false);
+  field("Window size").value = "4.5";
+  assert.equal(editor.values().spectrum.window_size, 4.5);
+  assert.equal(editor.values().spectrum.enabled, true, "MOSS uses native dependency, not Anima's missing patch");
+  assert.equal(editor.values().spectrum.preserved_extension, "forecast");
+  assert.deepEqual(editor.values().dit_corrections, values.dit_corrections);
+  setMossSpectrum(["sampler"]);
+  assert.deepEqual(editor.values(), {spectrum: values.spectrum, dit_corrections: values.dit_corrections}, "Revoked stage permission preserves original saved state at Apply");
+  assert.ok(forecastLabels.every((label) => field(label).disabled));
+  for (const status of ["missing_dependency", "incompatible"]) {
+    setMossSpectrum([], status);
+    assert.deepEqual(editor.values(), {spectrum: values.spectrum, dit_corrections: values.dit_corrections});
+    assert.ok(findAll(editor.section, (element) => element.textContent.includes(status === "incompatible" ? "text.modelSpectrumIncompatible" : "text.modelSpectrumMissing")).length);
+  }
+  setMossSpectrum(["sampler", stage]);
+  fixture.availabilityState.spectrumNativeMoss = false;
+  assert.deepEqual(editor.values(), {spectrum: values.spectrum, dit_corrections: values.dit_corrections}, "Missing adapter node preserves saved values despite an available manifest");
+}
+
+// Exercise actual dialog Apply and hidden-widget serialization for both stage callers.
+for (const stage of ["highres", "upscale"]) {
+  setMossSpectrum(["sampler", stage]);
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  settings[stage].dit_corrections.enabled = true;
+  const fixture = createFixture({settings, available: {spectrumNativeMoss: true, spectrumPatch: false}});
+  fixture.runtime[stage === "highres" ? "openHighresSettings" : "openUpscaleSettings"](fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  assert.equal(control(dialog, "Spectrum patch").disabled, false, `${stage} caller passes the explicit stage`);
+  control(dialog, "Spectrum patch").checked = true;
+  control(dialog, "Window size").value = "3.5";
+  action(dialog, "button.apply").emit("click");
+  const saved = JSON.parse(fixture.node.widgets[0].value);
+  assert.equal(saved[stage].spectrum.enabled, true);
+  assert.equal(saved[stage].spectrum.window_size, 3.5);
+  assert.deepEqual(saved[stage].dit_corrections, settings[stage].dit_corrections);
+}
+
+setMossSpectrum(["sampler", "highres", "detailer", "upscale"]);
+const fullMossProfile = modelProfilesModule.aioModelProfile("moss_image");
+for (const stage of ["sampler", "highres", "detailer", "upscale"]) {
+  assert.equal(fullMossProfile.feature("spectrum", stage).supported, true);
+  assert.equal(fullMossProfile.feature("dit_corrections", stage).supported, false);
+  assert.equal(fullMossProfile.feature("mod_guidance", stage).supported, false);
+}
+
+modelProfilesModule.aioUpdateModelCapabilities({});
+console.log("AiO stage settings dialogs smoke passed.");

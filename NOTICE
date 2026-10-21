@@ -1,0 +1,32 @@
+ComfyUI EasyUse Anima
+Copyright (c) 2026 n0va39 and contributors
+
+This project is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version (SPDX-License-Identifier: GPL-3.0-or-later).
+
+This project is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See LICENSE for
+the GNU General Public License. If a copy was not supplied, see
+https://www.gnu.org/licenses/.
+
+License transition
+------------------
+The GPL distribution policy starts with the commit introducing this NOTICE.
+It does not revoke permissions for code previously supplied under MIT.
+The pre-transition tree is 18c3f44b676539f326f5c930e5437927c6821a75.
+Its original MIT notice is retained verbatim in LICENSE-MIT for the
+pre-existing material, including MIT-licensed contributions. This does not
+offer subsequent GPL-only changes under MIT.
+
+Third-party material
+--------------------
+The native Anima Safe PAG implementation in easyuse_anima/aio/safe_pag.py
+includes code adapted from iljung1106/comfyui-anima-safe-pag. Preserve its
+original MIT license and provenance/change notices in
+third_party/anima-safe-pag/LICENSE and third_party/anima-safe-pag/NOTICE.md.
+
+Separately installed node packs, dependencies, model weights and datasets
+retain their own licenses. This project's license does not relicense them.

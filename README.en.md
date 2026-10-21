@@ -2,6 +2,10 @@
 
 Language: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
+License: **GPL-3.0-or-later**. See [LICENSE](LICENSE) for the full terms and
+[NOTICE](NOTICE) for scope and third-party notices. Existing permissions for
+previously MIT-licensed code remain; its notice is kept in [LICENSE-MIT](LICENSE-MIT).
+
 Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets,
 wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and
 ANIMA/Spectrum workflow helpers for ComfyUI.

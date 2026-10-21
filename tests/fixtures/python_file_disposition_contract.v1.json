@@ -3,8 +3,8 @@
   "baseline_commit": "39997c5423847d4280737f0d78d353d3c6273e07",
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
-    "expected_baseline_files": 194,
-    "expected_target_files": 214
+    "expected_baseline_files": 195,
+    "expected_target_files": 215
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -259,6 +259,28 @@
         }
       ],
       "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/capabilities.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/capabilities.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_model_profiles.py"
+      ],
       "compatibility_registry_key": null,
       "task_id": null,
       "rollback_unit": null,

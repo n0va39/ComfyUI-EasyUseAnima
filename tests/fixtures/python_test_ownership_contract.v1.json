@@ -16,6 +16,13 @@
   },
   "matrices": [
     {
+      "name": "aio-capability-adapters",
+      "category": "live_host",
+      "mode": "manual-on-trigger",
+      "owner": "docs/development/aio-capability-adapters.md",
+      "purpose": "native provider availability, fixed model capabilities and both canvas controls"
+    },
+    {
       "name": "aio-settings-migration",
       "category": "migration_compatibility",
       "mode": "unittest",
@@ -77,6 +84,7 @@
           "tests/test_civitai_lookup_nodes.py"
         ],
         "live_host": [
+          "@matrix:aio-capability-adapters",
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
