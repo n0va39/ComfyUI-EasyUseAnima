@@ -77410,7 +77410,7 @@
       }
     ],
     "ignore_file": ".comfyignore",
-    "ignore_file_normalized_git_blob_sha1": "e447b6d3726fe4e06da1bef09ed7b035dbd14aa8",
+    "ignore_file_normalized_git_blob_sha1": "00951c6511649cc8ace6bf60fe1c1a3ee2e1f557",
     "missing_internal_imports": [],
     "optional_imports": [
       {

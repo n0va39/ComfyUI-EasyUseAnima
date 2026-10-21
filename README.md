@@ -4,6 +4,14 @@ Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets,
 wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and
 ANIMA/Spectrum workflow helpers for ComfyUI.
 
+## License
+
+ComfyUI EasyUse Anima is licensed under **GPL-3.0-or-later**.
+See [LICENSE](LICENSE) for the full terms and [NOTICE](NOTICE) for the license
+grant and third-party notices. Previously MIT-licensed code remains available
+under its original terms; its notice is preserved in [LICENSE-MIT](LICENSE-MIT).
+Separately installed models and node packs retain their own licenses.
+
 ## Language / 언어
 
 - [한국어 문서](README.ko.md)

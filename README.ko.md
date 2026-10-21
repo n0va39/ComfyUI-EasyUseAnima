@@ -2,6 +2,10 @@
 
 언어: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
+라이선스: **GPL-3.0-or-later**. 전문은 [LICENSE](LICENSE), 적용 범위와
+제삼자 고지는 [NOTICE](NOTICE)를 참고하세요. 이전 MIT 코드에 부여된 권리는
+유지되며 원문은 [LICENSE-MIT](LICENSE-MIT)에 보존합니다.
+
 프롬프트 편집, ANIMA 프롬프트 보정, NAIA 프롬프트 연동, LoRA 프리셋 관리,
 와일드카드 확장, Anima·MOSS·Krea2 모델별 AiO 생성, ANIMA/Spectrum workflow 보조 기능을 제공하는
 ComfyUI 커스텀 노드팩입니다.

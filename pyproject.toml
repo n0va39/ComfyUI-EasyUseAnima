@@ -3,6 +3,7 @@ name = "comfyui-easyuse-anima"
 description = "Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets, wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and ANIMA/Spectrum workflow helpers for ComfyUI."
 version = "1.6.0"
 readme = "README.md"
+# GPL-3.0-or-later; the project grant and retained MIT notices are in NOTICE.
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
