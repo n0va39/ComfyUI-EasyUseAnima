@@ -1295,7 +1295,7 @@
   },
   "EasyUseMossAIOGenerator": {
     "display_name": "AiO Generator (MOSS)",
-    "description": "使用 ComfyUI 原生 KSampler 的 MOSS 專用 AiO 生成節點。支援 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、通用 AiO hook 和 KJ 最佳化。各模型的支援範圍請參閱節點提示。",
+    "description": "使用 ComfyUI 原生 KSampler 的 MOSS 專用 AiO 生成節點。Input 使用 MOSS-Image、Qwen3.5 9B、CLIP type moss_image、FLUX.2 VAE。支援 Highres、SAM3 Detailer、USDU/ResShift 與 AiO hook。進階選項 > MOSS 專用設定提供 SLG、文字提示詞擴展與 Layout JSON；最佳化提供 attention 與編譯設定。DAVE 需要包含 MOSS 遮罩的節點，Spectrum 需要相容的 MOSS 模型修補節點。編譯相容性取決於檢查點與執行環境。Artist Mix、NegPip 支援取決於提示詞模式，NegPip 還需要支援 native-MOSS 的 ComfyUI-ppm。",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",
@@ -1331,7 +1331,7 @@
   },
   "EasyUseKrea2AIOGenerator": {
     "display_name": "AiO Generator (Krea2)",
-    "description": "使用 ComfyUI 原生 KSampler 的 Krea2 專用 AiO 生成節點。支援 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、通用 AiO hook 和 KJ 最佳化。各模型的支援範圍請參閱節點提示。",
+    "description": "使用 ComfyUI 原生 KSampler 的 Krea2 專用 AiO 生成節點。Input 使用 Krea2、Qwen3-VL 4B、CLIP type krea2、Qwen Image VAE。預設值是 Turbo 起始設定：8 steps、CFG 1、Euler/simple、shift 1.15。RAW 或自訂檢查點請使用各模型建議的取樣設定。支援 Highres、SAM3 Detailer、USDU/ResShift、Artist Mix 與 AiO hook。進階選項 > 最佳化提供 attention 與編譯設定。Spectrum 需要相容的 Krea2 模型修補節點。Krea2 不支援 DAVE、Safe PAG、Mod Guidance、NegPip。",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",

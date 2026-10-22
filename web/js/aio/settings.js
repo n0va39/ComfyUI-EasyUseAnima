@@ -74,9 +74,9 @@ export const AIO_DEFAULT_GENERATION_SETTINGS = {
     },
     dave: {
       enabled: false,
-      mask: "dave_alpha.npz",
+      mask: "auto",
       strength: 0.30,
-      tau: 0.10,
+      tau: 0.06,
       stage_scope: {
         first_pass: true,
         highres: false,
@@ -115,12 +115,13 @@ export const AIO_DEFAULT_GENERATION_SETTINGS = {
         enabled: false,
         backend: "inductor",
         fullgraph: false,
-        mode: "max-autotune-no-cudagraphs",
-        dynamic: "false",
+        mode: "default",
+        dynamic: "auto",
         compile_transformer_blocks_only: true,
         dynamo_cache_size_limit: 64,
         debug_compile_keys: false,
-        disable_dynamic_vram: true,
+        disable_dynamic_vram: false,
+        provider: "kj",
       },
     },
   },
@@ -468,6 +469,18 @@ export function aioCloneJson(value) {
 
 export function aioGenerationDefaultsForFamily(family = "anima") {
   const defaults = aioCloneJson(AIO_DEFAULT_GENERATION_SETTINGS);
+  if (family === "moss_image") {
+    defaults.model_settings.moss_image = {
+      slg: {
+        mode: "off", layers: "22", scale: 3.0, start_percent: 0.0, end_percent: 1.0,
+        stage_scope: { first_pass: true, highres: true, detailer: true, upscale: true },
+      },
+      prompt: {
+        mode: "original", layout_json: "", max_length: 512, seed: 0,
+        temperature: 0.7, top_k: 64, top_p: 0.95, min_p: 0.05, repetition_penalty: 1.05,
+      },
+    };
+  }
   if (family === "moss_image" || family === "krea2") {
     defaults.model_family = family;
     defaults.sampler.steps = family === "krea2" ? 8 : 25;
@@ -480,6 +493,11 @@ export function aioGenerationDefaultsForFamily(family = "anima") {
       for (const key of ["steps", "cfg", "sampler_name", "scheduler"]) stage[key] = defaults.sampler[key];
       stage.spectrum.enabled = false;
       stage.dit_corrections.enabled = false;
+    }
+    if (family === "krea2") {
+      for (const stage of [defaults.sampler, defaults.highres, defaults.upscale, defaults.detailer.face, defaults.detailer.eye]) {
+        Object.assign(stage.spectrum, { warmup_steps: 3, tail_actual_steps: 2, cheby_degree: 1, history_size: 8 });
+      }
     }
   }
   return defaults;

@@ -426,8 +426,15 @@
         "moss_image",
         "krea2"
       ],
-      "active_settings": "top-level-fields",
-      "model_settings": "inert-preserved-snapshots",
+      "active_settings": "top-level-fields-and-known-active-model-features",
+      "model_settings": "known-active-model-features; other snapshots preserved and inert",
+      "moss_image_features": {
+        "path": "model_settings.moss_image",
+        "slg": "off/uncond/standard; single layers; scale; start/end; four sampling-stage scopes",
+        "prompt": "original/enhance/layout; explicit selection; effective text enters metadata and cache",
+        "defaults": "SLG off; original prompt; missing active bank filled; other banks unchanged",
+        "unknown_fields": "preserve without execution"
+      },
       "restore": "fixed-by-node-class; explicit-family-mismatch-rejected"
     }
   },
@@ -884,7 +891,7 @@
         "type": "object",
         "coercion": "json-object-or-empty",
         "unknown_fields": "preserve",
-        "execution": "inert-preserved-legacy-snapshots"
+        "execution": "known slg/prompt fields in active moss_image bank only; inactive and unknown fields remain inert"
       },
       "mode": {
         "type": "string",
@@ -1271,6 +1278,10 @@
                   "disable_dynamic_vram": {
                     "type": "boolean",
                     "coercion": "backend_boolean"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "coercion": "string-or-default"
                   }
                 }
               }
@@ -2036,9 +2047,9 @@
       },
       "dave": {
         "enabled": false,
-        "mask": "dave_alpha.npz",
+        "mask": "auto",
         "strength": 0.3,
-        "tau": 0.1,
+        "tau": 0.06,
         "stage_scope": {
           "first_pass": true,
           "highres": false,
@@ -2077,12 +2088,13 @@
           "enabled": false,
           "backend": "inductor",
           "fullgraph": false,
-          "mode": "max-autotune-no-cudagraphs",
-          "dynamic": "false",
+          "mode": "default",
+          "dynamic": "auto",
           "compile_transformer_blocks_only": true,
           "dynamo_cache_size_limit": 64,
           "debug_compile_keys": false,
-          "disable_dynamic_vram": true
+          "disable_dynamic_vram": false,
+          "provider": "kj"
         }
       }
     },

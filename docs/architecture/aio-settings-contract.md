@@ -35,9 +35,11 @@ execution은 기존 코드다.
 v5의 `model_family`는 `anima`, `moss_image`, `krea2`다. 생성 노드 class가 계열을
 고정하며, 명시된 계열과 class가 다르면 저장된 튜닝을 재해석하지 않고 오류로 안내한다.
 생략된 계열은 해당 노드의 계열로 채운다. 기존 Anima node ID의 legacy 입력은
-계속 Anima다. 알 수 없는 계열은 오류로 거부한다. `model_settings`는 이전 개발판
-snapshot 보존용 JSON object이며 실행·UI에서 복원하지 않는다. 실행은 항상 최상위
-설정을 사용한다. bank 변경은 first-pass cache key에 포함하지 않으며 계열은 포함한다.
+계속 Anima다. 알 수 없는 계열은 오류로 거부한다. 공통 실행 설정은 최상위 필드에
+유지한다. `model_settings`는 모델 전용 기능과 이전 개발판 snapshot을 보존하는 JSON
+object다. 현재는 MOSS 노드의 `model_settings.moss_image.slg`와 `.prompt`만 실행한다.
+다른 계열 bank, 이전 snapshot의 sampler 값과 알 수 없는 필드는 그대로 보존하며
+실행하지 않는다. 활성 first-pass SLG와 실제 사용한 prompt는 cache key에 반영한다.
 v4→v5 migration은 기존 값에 손대지 않고 `model_family=anima`, `model_settings={}`를
 추가한다. 고정 노드 입력은 migration 전에 계열을 지정한다. 부분 MOSS/Krea2 입력에는
 해당 계열 기본값을 채우되 명시적으로 저장된 값을 보존한다.
@@ -45,6 +47,19 @@ v4→v5 migration은 기존 값에 손대지 않고 `model_family=anima`, `model
 latent·sampling 계약, node adapter·등록, 실행 metadata 인식, 실제 host 검증을 함께 확장한다.
 Krea2는 FLUX sampling의 고정 mu를 사용한다. 저장 키 `model_patches.aura_flow.shift`는
 호환성을 위해 유지하며 실제 patch 선택은 모델 프로필이 소유한다.
+
+MOSS 전용 기능은 `aio/moss_features.py`가 정규화와 공개 Comfy 노드 호출을 소유한다.
+SLG는 기본 off이며 uncond/standard와 레이어·적용 구간·단계별 scope를 선택한다.
+prompt는 원문/확장/레이아웃 중 명시적으로 선택한다. 레이아웃은 구조화된 JSON을
+일반 태그처럼 재조합하지 않고, 확장은 기존 MOSS CLIP으로 Comfy `TextGenerate`를
+호출한다. 원문과 실제 사용한 prompt를 구분해 metadata에 남긴다.
+
+컴파일 제공자는 기존 `model_patches.kj.torch_compile.provider`에 추가하며 생략하면
+`kj`다. Anima Block Compile은 Anima 전용이고 KJ compile은 각 모델에서 선택 가능하다.
+설치·입력 계약 확인과 실제 체크포인트의 커널 컴파일 성공은 별개다. 새 기본값은
+mode=default, dynamic=auto, disable_dynamic_vram=false이며 저장된 명시적 값은 보존한다.
+DAVE의 auto 마스크는 제공자의 모델별 선택을 따르고, 구버전 Anima 노드에는 기존
+Anima 마스크로 전달한다. MOSS에서 Anima 전용 마스크를 선택하면 명확히 오류로 안내한다.
 
 정규화 이후의 root는 object이며 다음 section을 갖는다.
 

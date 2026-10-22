@@ -1028,118 +1028,122 @@ for (const family of ["moss_image", "krea2"]) {
   assert.deepEqual(fixture.node.settings.mod_guidance, settings.mod_guidance);
 }
 
-function setMossCapability(status = "available", stages = ["sampler"]) {
-  modelProfilesModule.aioUpdateModelCapabilities({modelProfile_moss_image: {input: {required: {generation_settings: ["STRING", {aio_capabilities: {
-    contract_version: 1, model_family: "moss_image", features: {spectrum: {
-      supported: status === "available", status, stages,
-      provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch",
-      reason_code: status === "missing_dependency" ? "native_moss_adapter_missing" : status === "incompatible" ? "native_moss_adapter_incompatible" : "",
-    }},
-  }}]}}}});
-}
-{
-  modelProfilesModule.aioUpdateModelCapabilities({});
-  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
-  settings.sampler.spectrum.enabled = true;
-  settings.sampler.spectrum.window_size = 3.5;
-  settings.sampler.spectrum_extra = {saved_extension: "keep"};
-  const fixture = createFixture({settings, deferLoads: true, available: {spectrumPatch: false, spectrumNativeMoss: true}});
-  fixture.openSamplerSettings(fixture.node);
-  const dialog = fixture.dialogs[0];
-  const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
-  assert.equal(controlIn(spectrum, "Use Spectrum patch").disabled, true);
-  assert.equal(controlIn(spectrum, "Use Spectrum patch").checked, true, "pending capabilities cannot erase an enabled saved value");
-  setMossCapability();
-  fixture.resolveLoads();
-  await flushPromises();
-  assert.equal(controlIn(spectrum, "Use Spectrum patch").disabled, false, "resolved native adapter enables first-pass forecast controls");
-  for (const name of ["Window size", "Flex window", "Warmup steps", "Tail actual", "Blend W", "Cheby degree", "Ridge lambda", "Compat policy"]) {
-    assert.equal(controlIn(spectrum, name).disabled, false, `${name} unlocks after manifest refresh`);
+for (const [family, label, nodeId] of [["moss_image", "MOSS", "SpectrumMossModelPatch"], ["krea2", "Krea2", "SpectrumKrea2ModelPatch"]]) {
+  const dependencyKey = modelProfilesModule.aioModelProfile(family).spectrumDependencyKey;
+  function setModelCapability(status = "available", stages = ["sampler"]) {
+    modelProfilesModule.aioUpdateModelCapabilities({[`modelProfile_${family}`]: {input: {required: {generation_settings: ["STRING", {aio_capabilities: {
+      contract_version: 1, model_family: family, features: {spectrum: {
+        supported: status === "available", status, stages,
+        provider: "ComfyUI-Spectrum-KSampler", adapter: nodeId,
+        reason_code: status === "missing_dependency" ? "native_moss_adapter_missing" : status === "incompatible" ? "native_moss_adapter_incompatible" : "",
+      }},
+    }}]}}}});
   }
-  assert.equal(controlIn(spectrum, "Compat policy").disabled, false);
-  assert.equal(controlIn(spectrum, "Compat policy").title, "tooltip:spectrumNativeMoss:compat_policy", "resolved adapter replaces the stale unsupported tooltip");
-  const corrections = sectionByHeading(dialog, "Spectrum Advanced Corrections");
-  assert.ok(corrections.querySelectorAll("input, select").every((control) => control.disabled));
-  assert.ok(fixture.supportedCalls.some((call) => call.key === "spectrumNativeMoss" && call.inputName === "window_size"));
-  const sampler = sectionByHeading(dialog, "Sampler Backend");
-  assert.deepEqual(controlIn(sampler, "Mode").options.map((option) => option.value), ["comfy_ksampler"]);
-  assert.equal(modelProfilesModule.aioModelProfile("moss_image").capabilities.spectrum, false);
-  controlIn(spectrum, "Window size").value = "4.5";
-  action(dialog, "button.apply").emit("click");
-  assert.equal(fixture.node.settings.sampler.spectrum.enabled, true);
-  assert.equal(fixture.node.settings.sampler.spectrum.window_size, 4.5);
-  assert.deepEqual(fixture.node.settings.sampler.spectrum_extra, {saved_extension: "keep"});
-  assert.equal(fixture.node.settings.sampler.dit_corrections.enabled, false);
-}
-for (const [status, message] of [["missing_dependency", "text.modelSpectrumMissing"], ["incompatible", "text.modelSpectrumIncompatible"]]) {
-  setMossCapability(status);
-  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
-  settings.sampler.spectrum.enabled = true;
-  settings.sampler.spectrum.window_size = 3.75;
-  const fixture = createFixture({settings});
-  fixture.openSamplerSettings(fixture.node);
-  await flushPromises();
-  const dialog = fixture.dialogs[0];
-  assert.ok(findByText(dialog.body, `format:${message}:${JSON.stringify({model: "MOSS"})}`));
-  const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
-  assert.ok(spectrum.querySelectorAll("input, select").every((control) => control.disabled));
-  assert.equal(controlIn(spectrum, "Use Spectrum patch").checked, true);
-  controlIn(sectionByHeading(dialog, "Base Parameters"), "CFG").value = "4";
-  action(dialog, "button.apply").emit("click");
-  assert.deepEqual(fixture.node.settings.sampler.spectrum, settings.sampler.spectrum);
-  assert.equal(fixture.node.settings.sampler.cfg, 4);
-}
-modelProfilesModule.aioUpdateModelCapabilities({});
+  {
+    modelProfilesModule.aioUpdateModelCapabilities({});
+    const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+    settings.sampler.spectrum.enabled = true;
+    settings.sampler.spectrum.window_size = 3.5;
+    settings.sampler.spectrum_extra = {saved_extension: "keep"};
+    const fixture = createFixture({settings, deferLoads: true, available: {spectrumPatch: false, [dependencyKey]: true}});
+    fixture.openSamplerSettings(fixture.node);
+    const dialog = fixture.dialogs[0];
+    const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
+    assert.equal(controlIn(spectrum, "Use Spectrum patch").disabled, true);
+    assert.equal(controlIn(spectrum, "Use Spectrum patch").checked, true, "pending capabilities cannot erase an enabled saved value");
+    setModelCapability();
+    fixture.resolveLoads();
+    await flushPromises();
+    assert.equal(controlIn(spectrum, "Use Spectrum patch").disabled, false, "resolved native adapter enables first-pass forecast controls");
+    for (const name of ["Window size", "Flex window", "Warmup steps", "Tail actual", "Blend W", "Cheby degree", "Ridge lambda", "Compat policy"]) {
+      assert.equal(controlIn(spectrum, name).disabled, false, `${name} unlocks after manifest refresh`);
+    }
+    assert.equal(controlIn(spectrum, "Compat policy").disabled, false);
+    assert.equal(controlIn(spectrum, "Compat policy").title, `tooltip:${dependencyKey}:compat_policy`, "resolved adapter replaces the stale unsupported tooltip");
+    const corrections = sectionByHeading(dialog, "Spectrum Advanced Corrections");
+    assert.ok(corrections.querySelectorAll("input, select").every((control) => control.disabled));
+    assert.ok(fixture.supportedCalls.some((call) => call.key === dependencyKey && call.inputName === "window_size"));
+    const sampler = sectionByHeading(dialog, "Sampler Backend");
+    assert.deepEqual(controlIn(sampler, "Mode").options.map((option) => option.value), ["comfy_ksampler"]);
+    assert.equal(modelProfilesModule.aioModelProfile(family).capabilities.spectrum, false);
+    controlIn(spectrum, "Window size").value = "4.5";
+    action(dialog, "button.apply").emit("click");
+    assert.equal(fixture.node.settings.sampler.spectrum.enabled, true);
+    assert.equal(fixture.node.settings.sampler.spectrum.window_size, 4.5);
+    assert.deepEqual(fixture.node.settings.sampler.spectrum_extra, {saved_extension: "keep"});
+    assert.equal(fixture.node.settings.sampler.dit_corrections.enabled, false);
+  }
+  for (const [status, message] of [["missing_dependency", "text.modelSpectrumMissing"], ["incompatible", "text.modelSpectrumIncompatible"]]) {
+    setModelCapability(status);
+    const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+    settings.sampler.spectrum.enabled = true;
+    settings.sampler.spectrum.window_size = 3.75;
+    const fixture = createFixture({settings});
+    fixture.openSamplerSettings(fixture.node);
+    await flushPromises();
+    const dialog = fixture.dialogs[0];
+    assert.ok(findByText(dialog.body, `format:${message}:${JSON.stringify({model: label})}`));
+    const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
+    assert.ok(spectrum.querySelectorAll("input, select").every((control) => control.disabled));
+    assert.equal(controlIn(spectrum, "Use Spectrum patch").checked, true);
+    controlIn(sectionByHeading(dialog, "Base Parameters"), "CFG").value = "4";
+    action(dialog, "button.apply").emit("click");
+    assert.deepEqual(fixture.node.settings.sampler.spectrum, settings.sampler.spectrum);
+    assert.equal(fixture.node.settings.sampler.cfg, 4);
+  }
+  modelProfilesModule.aioUpdateModelCapabilities({});
 
 
-for (const status of ["available", "missing_dependency", "incompatible"]) {
-  setMossCapability(status);
-  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
-  settings.sampler.backend = "spectrum_spd_speed";
-  settings.sampler.spectrum.enabled = true;
-  settings.sampler.spd_extra = {retired_option: "keep"};
-  const fixture = createFixture({settings});
-  const stored = clone(fixture.node.settings);
-  fixture.openSamplerSettings(fixture.node);
-  await flushPromises();
-  assert.equal(fixture.writes.length, 0, "opening a dialog never rewrites unavailable saved backends");
-  action(fixture.dialogs[0], "button.apply").emit("click");
-  assert.deepEqual(fixture.node.settings, stored, "applying unrelated/no edits retains the exact saved unsupported backend and tuning");
-}
-{
-  setMossCapability();
-  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
-  const fixture = createFixture({settings});
-  fixture.openSamplerSettings(fixture.node);
-  await flushPromises();
-  const dialog = fixture.dialogs[0];
-  const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
-  controlIn(spectrum, "Use Spectrum patch").checked = true;
-  modelProfilesModule.aioUpdateModelCapabilities({});
-  action(dialog, "button.apply").emit("click");
-  assert.deepEqual(fixture.node.settings.sampler.spectrum, settings.sampler.spectrum, "Apply rechecks refreshed capabilities instead of using a stale available snapshot");
-}
-for (const savedBackend of ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"]) {
-  setMossCapability("available", ["sampler", "highres", "detailer", "upscale"]);
-  assert.equal(modelProfilesModule.aioModelProfile("moss_image").capabilities.spectrum, true);
-  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
-  settings.sampler.backend = savedBackend;
-  settings.sampler.spectrum.enabled = true;
-  settings.sampler.spectrum_extra = {retained_advanced: "keep"};
-  settings.sampler.spd_extra = {retained_spd: "keep"};
-  const fixture = createFixture({settings});
-  const stored = clone(fixture.node.settings);
-  fixture.openSamplerSettings(fixture.node);
-  await flushPromises();
-  const dialog = fixture.dialogs[0];
-  assert.deepEqual(controlIn(sectionByHeading(dialog, "Sampler Backend"), "Mode").options.map((option) => option.value), ["comfy_ksampler"], "All-stage native forecast never unlocks Anima integrated backends");
-  assert.equal(fixture.writes.length, 0);
-  if (savedBackend === "comfy_ksampler") {
-    assert.equal(controlIn(sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler"), "Use Spectrum patch").disabled, false);
+  for (const status of ["available", "missing_dependency", "incompatible"]) {
+    setModelCapability(status);
+    const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+    settings.sampler.backend = "spectrum_spd_speed";
+    settings.sampler.spectrum.enabled = true;
+    settings.sampler.spd_extra = {retired_option: "keep"};
+    const fixture = createFixture({settings});
+    const stored = clone(fixture.node.settings);
+    fixture.openSamplerSettings(fixture.node);
+    await flushPromises();
+    assert.equal(fixture.writes.length, 0, "opening a dialog never rewrites unavailable saved backends");
+    action(fixture.dialogs[0], "button.apply").emit("click");
+    assert.deepEqual(fixture.node.settings, stored, "applying unrelated/no edits retains the exact saved unsupported backend and tuning");
   }
-  action(dialog, "button.apply").emit("click");
-  assert.deepEqual(fixture.node.settings, stored, "Opening and applying preserves saved unsupported backends and tuning");
-  assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), stored);
+  {
+    setModelCapability();
+    const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+    const fixture = createFixture({settings});
+    fixture.openSamplerSettings(fixture.node);
+    await flushPromises();
+    const dialog = fixture.dialogs[0];
+    const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
+    controlIn(spectrum, "Use Spectrum patch").checked = true;
+    modelProfilesModule.aioUpdateModelCapabilities({});
+    action(dialog, "button.apply").emit("click");
+    assert.deepEqual(fixture.node.settings.sampler.spectrum, settings.sampler.spectrum, "Apply rechecks refreshed capabilities instead of using a stale available snapshot");
+  }
+  for (const savedBackend of ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"]) {
+    setModelCapability("available", ["sampler", "highres", "detailer", "upscale"]);
+    assert.equal(modelProfilesModule.aioModelProfile(family).capabilities.spectrum, true);
+    const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+    settings.sampler.backend = savedBackend;
+    settings.sampler.spectrum.enabled = true;
+    settings.sampler.spectrum_extra = {retained_advanced: "keep"};
+    settings.sampler.spd_extra = {retained_spd: "keep"};
+    const fixture = createFixture({settings});
+    const stored = clone(fixture.node.settings);
+    fixture.openSamplerSettings(fixture.node);
+    await flushPromises();
+    const dialog = fixture.dialogs[0];
+    assert.deepEqual(controlIn(sectionByHeading(dialog, "Sampler Backend"), "Mode").options.map((option) => option.value), ["comfy_ksampler"], "All-stage native forecast never unlocks Anima integrated backends");
+    assert.equal(fixture.writes.length, 0);
+    if (savedBackend === "comfy_ksampler") {
+      assert.equal(controlIn(sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler"), "Use Spectrum patch").disabled, false);
+    }
+    action(dialog, "button.apply").emit("click");
+    assert.deepEqual(fixture.node.settings, stored, "Opening and applying preserves saved unsupported backends and tuning");
+    assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), stored);
+  }
+
 }
 
 modelProfilesModule.aioUpdateModelCapabilities({});

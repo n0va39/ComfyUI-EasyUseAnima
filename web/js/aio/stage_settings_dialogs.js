@@ -128,8 +128,8 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     let profile = modelProfile(family);
     let spectrumCapability = profile.feature("spectrum", stage);
     let correctionCapability = profile.feature("dit_corrections", stage);
-    const nativeMoss = family === "moss_image";
-    const spectrumKey = nativeMoss ? "spectrumNativeMoss" : "spectrumPatch";
+    const modelPatchOnly = family !== "anima";
+    const spectrumKey = profile.spectrumDependencyKey || "spectrumPatch";
     const spectrumAvailable = () => spectrumCapability.supported && optionalDependencyAvailable(spectrumKey);
     const section = document.createElement("section");
     section.className = "easyuse-anima-aio-section";
@@ -182,13 +182,13 @@ export function aioCreateStageSettingsDialogs(dependencies) {
         : status === "incompatible" ? "text.modelSpectrumIncompatible"
           : spectrumCapability.reason_code === "stage_not_supported" ? "text.modelSpectrumStageUnsupported"
             : "text.modelSpectrumUnsupported";
-      const spectrumMessage = !spectrumCapability.supported || nativeMoss
+      const spectrumMessage = !spectrumCapability.supported || modelPatchOnly
         ? aioFormat(spectrumReason, { model: profile.label })
         : aioFormat("warning.optionalDependencyMissing", { backend: title, pack: optionalDependencyPack(spectrumKey) });
       const correctionMessage = !correctionCapability.supported
         ? aioFormat("text.modelCorrectionsUnsupported", { model: profile.label })
         : aioFormat("warning.optionalDependencyMissing", { backend: title, pack: optionalDependencyPack("spectrumPatch") });
-      const spectrumLocked = !spectrumCapability.supported || (nativeMoss && spectrumMissing);
+      const spectrumLocked = !spectrumCapability.supported || (modelPatchOnly && spectrumMissing);
       const correctionsLocked = !correctionCapability.supported;
       aioMarkMissingDependencyControl(spectrumEnabled, spectrumMissing || !spectrumCapability.supported, spectrumMessage);
       aioMarkMissingDependencyControl(correctionsEnabled, correctionMissing || correctionsLocked, correctionMessage);
@@ -202,7 +202,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       }
       // Retain Anima's dependency behavior; unavailable native profiles keep
       // their saved values visible and intact until their provider is available.
-      if (!nativeMoss && spectrumCapability.supported && spectrumMissing) spectrumEnabled.checked = false;
+      if (!modelPatchOnly && spectrumCapability.supported && spectrumMissing) spectrumEnabled.checked = false;
       if (correctionCapability.supported && correctionMissing) correctionsEnabled.checked = false;
       const messages = [];
       if (!spectrumAvailable()) messages.push(spectrumMessage);
@@ -235,7 +235,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       values() {
         refreshDependencyLocks();
         return {
-          spectrum: !spectrumCapability.supported || (nativeMoss && !spectrumAvailable()) ? spectrumValues : {
+          spectrum: !spectrumCapability.supported || (modelPatchOnly && !spectrumAvailable()) ? spectrumValues : {
             ...spectrumValues,
             enabled: spectrumEnabled.checked && optionalDependencyAvailable(spectrumKey),
             window_size: Number(windowSize.value || defaults.spectrum.window_size || 2),

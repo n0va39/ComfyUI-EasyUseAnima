@@ -59,6 +59,7 @@
  * @property {AioAdvancedDialogNodeAdapter} nodeAdapter
  * @property {AioAdvancedDialogDependencyAdapter} dependencyAdapter
  * @property {AioAdvancedDialogRecommendationAdapter} recommendationAdapter
+ * @property {{create: (settings: any) => any}} [modelSettingsEditor]
  */
 
 const DAVE_STAGE_IDS = Object.freeze([
@@ -174,6 +175,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     nodeAdapter,
     dependencyAdapter,
     recommendationAdapter,
+    modelSettingsEditor,
   } = dependencies;
   const {
     createDialog,
@@ -217,8 +219,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
   function openAdvancedSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
     const settings = generatorSettings(node);
-    const profile = modelProfile(settings.model_family);
-    const capabilities = profile.capabilities;
+    let profile = modelProfile(settings.model_family);
+    let capabilities = profile.capabilities;
     const { backdrop, body, actions } = createDialog(
       "Advanced Options",
       "Advanced generation options stay in a popup and are serialized as versioned settings."
@@ -230,6 +232,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
       return section;
     };
+    const modelSettings = modelSettingsEditor?.create(settings);
+    if (modelSettings) body.append(modelSettings.element);
 
     const conditioning = document.createElement("section");
     conditioning.className = "easyuse-anima-aio-section full";
@@ -267,11 +271,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     auraShift.min = String(GENERATOR_NUMERIC_LIMITS.auraFlowShift.min);
     auraShift.max = String(GENERATOR_NUMERIC_LIMITS.auraFlowShift.max);
 
-    const dave = makeSubsection("Anima DAVE");
+    const daveLabel = `DAVE (${profile.label})`;
+    const dave = makeSubsection(daveLabel);
     const daveEnabled = field(dave, "Use DAVE", checkbox(settings.model_patches.dave.enabled), "tip.daveEnabled");
-    const daveMask = field(dave, "Mask", textInput(settings.model_patches.dave.mask || "dave_alpha.npz"), "tip.daveMask");
+    const daveMask = field(dave, "Mask", textInput(settings.model_patches.dave.mask || "auto"), "tip.daveMask");
     const daveStrength = field(dave, "DAVE strength", numberInput(settings.model_patches.dave.strength ?? 0.30, "0.01"), "tip.daveStrength");
-    const daveTau = field(dave, "DAVE tau", numberInput(settings.model_patches.dave.tau ?? 0.10, "0.01"), "tip.daveTau");
+    const daveTau = field(dave, "DAVE tau", numberInput(settings.model_patches.dave.tau ?? 0.06, "0.01"), "tip.daveTau");
     const daveStageScope = settings.model_patches.dave.stage_scope
       || DEFAULT_GENERATION_SETTINGS.model_patches.dave.stage_scope;
     const daveStagePreset = field(
@@ -417,8 +422,10 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     safePagRescale.min = "0";
     safePagRescale.max = "1";
 
-    const kj = makeSubsection("KJNodes Optimization");
-    const fp16Accum = field(kj, "KJNodes FP16 accum", checkbox(settings.model_patches.kj.fp16_accumulation), "tip.kjFp16Accum");
+    const kj = makeSubsection("Optimization");
+    const kjPatches = document.createElement("div");
+    kj.append(kjPatches);
+    const fp16Accum = field(kjPatches, "KJNodes FP16 accum", checkbox(settings.model_patches.kj.fp16_accumulation), "tip.kjFp16Accum");
 
     const sage = makeSubsection("SageAttention (KJNodes)");
     const sageAttention = field(
@@ -489,9 +496,41 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     );
     sage.append(sageCustomStages);
     const sageAllowCompile = field(sage, "Allow compile", checkbox(settings.model_patches.kj.sage_allow_compile), "tip.kjSageCompile");
-    kj.append(sage);
+    kjPatches.append(sage);
 
-    const torch = makeSubsection("Torch Compile (KJNodes)");
+    const torch = makeSubsection("Block Compile");
+    const savedCompileProvider = settings.model_patches.kj.torch_compile.provider || "kj";
+    const compileProviderOptions = [
+      { value: "kj", label: "KJNodes" },
+      ...(settings.model_family === "anima"
+        ? [{ value: "anima_block_compile", label: "Anima Block Compile" }]
+        : []),
+    ];
+    if (!compileProviderOptions.some(({ value }) => value === savedCompileProvider)) {
+      compileProviderOptions.push({ value: savedCompileProvider, label: savedCompileProvider });
+    }
+    const torchCompileProvider = field(
+      torch, "Compile provider", selectInput(compileProviderOptions, savedCompileProvider), "tip.torchCompileProvider",
+    );
+    const compileProviderSpec = () => profile.optimizationProviders?.("torch_compile")
+      .find((provider) => provider.id === torchCompileProvider.value);
+    const compileDependencyKey = () => torchCompileProvider.value === "anima_block_compile"
+      ? "animaBlockCompile" : "kjTorchCompile";
+    const compileProviderAvailable = () => (
+      compileProviderSpec()?.status === "available"
+      && optionalDependencyAvailable(compileDependencyKey())
+    );
+    const compileProviderStatus = document.createElement("div");
+    compileProviderStatus.className = "easyuse-anima-aio-warning";
+    compileProviderStatus.setAttribute("aria-live", "polite");
+    torch.append(compileProviderStatus);
+    if (settings.model_family === "moss_image") {
+      const compileRuntimeNote = document.createElement("div");
+      compileRuntimeNote.className = "easyuse-anima-aio-warning";
+      compileRuntimeNote.setAttribute("data-compile-runtime-note", "true");
+      compileRuntimeNote.textContent = aioText("info.mossCompileRuntime");
+      torch.append(compileRuntimeNote);
+    }
     const torchCompileEnabled = field(
       torch,
       "Use Torch compile",
@@ -555,6 +594,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     torchRecommendationStatus.hidden = true;
     torchRecommendationStatus.style.whiteSpace = "pre-line";
     torchRecommendationStatus.setAttribute("aria-live", "polite");
+    torchRecommendationStatus.setAttribute("data-torch-compile-recommendation", "true");
     torch.append(torchRecommendationActions, torchRecommendationStatus, torchDetails);
     kj.append(torch);
 
@@ -599,7 +639,10 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         : "none";
     };
     const refreshTorchDetails = () => {
-      torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
+      const useKj = torchCompileProvider.value === "kj";
+      torchDetails.style.display = useKj && torchCompileEnabled.checked ? "" : "none";
+      torchRecommendationActions.style.display = useKj ? "" : "none";
+      torchRecommendationStatus.hidden = !useKj || !torchRecommendationStatus.textContent;
     };
     const torchControlValues = () => ({
       enabled: torchCompileEnabled.checked,
@@ -648,24 +691,36 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         ...result.warnings.map((code) => aioFormat("status.torchCompileWarning", { code })),
       ];
     };
+    let torchCapabilityWarning = false;
     const showTorchRecommendationStatus = (state, lines) => {
+      torchCapabilityWarning = false;
       torchRecommendationStatus.hidden = false;
       torchRecommendationStatus.setAttribute("data-state", state);
       torchRecommendationStatus.textContent = lines.join("\n");
     };
     let recommendationClosed = false;
     let recommendationPending = false;
+    let recommendationRevision = 0;
     torchRecommendButton.addEventListener("click", () => {
-      if (!capabilities.torchCompile || recommendationClosed || recommendationPending) {
+      if (!capabilities.torchCompile || torchCompileProvider.value !== "kj"
+        || recommendationClosed || recommendationPending) {
         return;
       }
       recommendationPending = true;
+      const revision = recommendationRevision;
       torchRecommendButton.disabled = true;
       showTorchRecommendationStatus("loading", [aioText("status.torchCompileLoading")]);
       Promise.resolve()
-        .then(() => recommendTorchCompile(settings, {}))
+        .then(() => recommendTorchCompile({
+          ...settings,
+          model_patches: { ...settings.model_patches, kj: {
+            ...settings.model_patches.kj,
+            torch_compile: { ...settings.model_patches.kj.torch_compile, provider: "kj" },
+          } },
+        }, {}))
         .then((result) => {
-          if (recommendationClosed) {
+          if (recommendationClosed || revision !== recommendationRevision
+            || torchCompileProvider.value !== "kj") {
             return;
           }
           if (!result.supported || !result.values) {
@@ -686,7 +741,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
           ]);
         })
         .catch((error) => {
-          if (!recommendationClosed) {
+          if (!recommendationClosed && revision === recommendationRevision
+            && torchCompileProvider.value === "kj") {
             showTorchRecommendationStatus("error", [
               aioFormat("status.torchCompileRequestFailed", {
                 message: error?.message || "unknown error",
@@ -755,7 +811,26 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         : (mode === "turbo" ? aioText("info.negpipTurboCfg") : "");
     };
 
+    const modelControlTitles = new Map(
+      [torch, dave].flatMap((section) => Array.from(section.querySelectorAll("input, select, textarea, button"))
+        .map((control) => [control, control.title])),
+    );
     const refreshAdvancedDependencyLocks = () => {
+      profile = modelProfile(settings.model_family);
+      capabilities = profile.capabilities;
+      // Restore ordinary tooltips before applying current dependency warnings.
+      for (const [supported, section] of [[capabilities.torchCompile, torch], [capabilities.dave, dave]]) {
+        if (supported) {
+          for (const control of section.querySelectorAll("input, select, textarea, button")) {
+            control.title = modelControlTitles.get(control) || "";
+          }
+        }
+      }
+      if (capabilities.torchCompile && torchCapabilityWarning) {
+        torchRecommendationStatus.textContent = "";
+        torchRecommendationStatus.setAttribute("data-state", "");
+        torchCapabilityWarning = false;
+      }
       const messages = [];
 
       const daveMissing = !optionalDependencyAvailable("dave");
@@ -770,16 +845,14 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         daveUpscale,
       ], daveMissing);
       const daveMessage = aioFormat("warning.optionalDependencyMissing", {
-        backend: "Anima DAVE",
+        backend: daveLabel,
         pack: optionalDependencyPack("dave"),
       });
       aioMarkMissingDependencyControl(daveEnabled, daveMissing, daveMessage);
-      if (daveMissing && daveEnabled.checked) {
-        daveEnabled.checked = false;
-      }
+      // Dependency discovery must not change a saved DAVE selection.
       if (daveMissing) {
         messages.push(aioFormat("warning.optionalDependencyMissing", {
-          backend: "Anima DAVE",
+          backend: daveLabel,
           pack: optionalDependencyPack("dave"),
         }));
       }
@@ -856,7 +929,15 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         }));
       }
 
-      const kjCompileMissing = !optionalDependencyAvailable("kjTorchCompile");
+      const kjCompileMissing = !compileProviderAvailable();
+      const useKj = torchCompileProvider.value === "kj";
+      torchCompileProvider.disabled = false;
+      torchRecommendButton.disabled = recommendationPending;
+      for (const option of torchCompileProvider.querySelectorAll("option")) {
+        const provider = profile.optimizationProviders?.("torch_compile")
+          .find((candidate) => candidate.id === option.value);
+        option.disabled = !provider || provider.status === "incompatible";
+      }
       setControlsDisabled([
         torchCompileBackend,
         torchCompileFullgraph,
@@ -866,19 +947,28 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         torchCompileCache,
         torchCompileDebug,
         torchCompileDisableVram,
-      ], kjCompileMissing);
+      ], kjCompileMissing || !useKj);
       const kjCompileMessage = aioFormat("warning.optionalDependencyMissing", {
         backend: "Torch Compile",
-        pack: optionalDependencyPack("kjTorchCompile"),
+        pack: optionalDependencyPack(compileDependencyKey()),
       });
       aioMarkMissingDependencyControl(torchCompileEnabled, kjCompileMissing, kjCompileMessage);
-      if (kjCompileMissing && torchCompileEnabled.checked) {
-        torchCompileEnabled.checked = false;
+      if (!compileProviderSpec() || compileProviderSpec().status === "incompatible") {
+        torchCompileEnabled.disabled = true;
       }
+      // Missing/older providers must not erase saved choices or enabled state.
+      compileProviderStatus.hidden = !kjCompileMissing && useKj;
+      compileProviderStatus.textContent = kjCompileMissing
+        ? aioFormat("status.compileProviderUnavailable", {
+          provider: torchCompileProvider.value,
+          status: compileProviderSpec()?.status === "available"
+            ? "missing_dependency" : (compileProviderSpec()?.status || "unsupported"),
+        })
+        : aioText("info.animaBlockCompile");
       if (kjCompileMissing) {
         messages.push(aioFormat("warning.optionalDependencyMissing", {
           backend: "Torch Compile",
-          pack: optionalDependencyPack("kjTorchCompile"),
+          pack: optionalDependencyPack(compileDependencyKey()),
         }));
       }
 
@@ -898,10 +988,11 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
           control.title = message;
         }
         showTorchRecommendationStatus("unsupported", [message]);
+        torchCapabilityWarning = true;
       }
       if (!capabilities.dave) daveEnabled.checked = !!settings.model_patches.dave.enabled;
       if (!capabilities.safePag) safePagEnabled.checked = !!settings.model_patches.safe_pag.enabled;
-      for (const [capability, section] of [["negpip", conditioning], ["dave", dave], ["safePag", safePag], ["kj", kj], ["artistMix", artistMix]]) {
+      for (const [capability, section] of [["negpip", conditioning], ["dave", dave], ["safePag", safePag], ["kj", kjPatches], ["artistMix", artistMix]]) {
         if (!capabilities[capability]) {
           for (const control of section.querySelectorAll("input, select, textarea, button")) {
             control.disabled = true;
@@ -921,7 +1012,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       }
       refreshAdvancedDependencyLocks();
     };
-    daveEnabled.addEventListener("change", () => guardToggle(daveEnabled, "dave", "Anima DAVE"));
+    daveEnabled.addEventListener("change", () => guardToggle(daveEnabled, "dave", daveLabel));
     daveStagePreset.addEventListener("change", refreshDaveStageScope);
     safePagEnabled.addEventListener("change", () => guardToggle(safePagEnabled, "safePag", "Anima Safe PAG"));
     safePagStagePreset.addEventListener("change", refreshSafePagStageScope);
@@ -937,9 +1028,14 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     sageStagePreset.addEventListener("change", refreshSageStageScope);
     torchCompileEnabled.addEventListener("change", () => guardToggle(
       torchCompileEnabled,
-      "kjTorchCompile",
+      compileDependencyKey(),
       "Torch Compile",
     ));
+    torchCompileProvider.addEventListener("change", () => {
+      recommendationRevision += 1;
+      torchRecommendationStatus.textContent = "";
+      refreshAdvancedDependencyLocks();
+    });
     negpipMode.addEventListener("change", () => {
       if (negpipMode.value !== "off" && !optionalDependencyAvailable("ppmNegPip")) {
         notifyMissingDependency(`NegPip ${negpipMode.value}`, ["ppmNegPip"]);
@@ -983,10 +1079,10 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         GENERATOR_NUMERIC_LIMITS.auraFlowShift.min,
         GENERATOR_NUMERIC_LIMITS.auraFlowShift.max,
       );
-      next.model_patches.dave.enabled = daveEnabled.checked && optionalDependencyAvailable("dave");
-      next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
+      next.model_patches.dave.enabled = daveEnabled.checked;
+      next.model_patches.dave.mask = daveMask.value || "auto";
       next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
-      next.model_patches.dave.tau = Number(daveTau.value || 0.10);
+      next.model_patches.dave.tau = Number(daveTau.value || 0.06);
       const davePresetScope = DAVE_STAGE_SCOPE_PRESETS[daveStagePreset.value];
       next.model_patches.dave.stage_scope = davePresetScope
         ? { ...davePresetScope }
@@ -1035,12 +1131,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
             detailer: sageDetailer.checked,
             upscale: sageUpscale.checked,
           };
-      next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked
-        && optionalDependencyAvailable("kjTorchCompile");
+      next.model_patches.kj.torch_compile.provider = torchCompileProvider.value;
+      next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked;
       next.model_patches.kj.torch_compile.backend = torchCompileBackend.value || "inductor";
       next.model_patches.kj.torch_compile.fullgraph = torchCompileFullgraph.checked;
-      next.model_patches.kj.torch_compile.mode = torchCompileMode.value || "max-autotune-no-cudagraphs";
-      next.model_patches.kj.torch_compile.dynamic = torchCompileDynamic.value || "false";
+      next.model_patches.kj.torch_compile.mode = torchCompileMode.value || "default";
+      next.model_patches.kj.torch_compile.dynamic = torchCompileDynamic.value || "auto";
       next.model_patches.kj.torch_compile.compile_transformer_blocks_only = torchCompileBlocksOnly.checked;
       next.model_patches.kj.torch_compile.dynamo_cache_size_limit = Number(torchCompileCache.value || 64);
       next.model_patches.kj.torch_compile.debug_compile_keys = torchCompileDebug.checked;
@@ -1054,6 +1150,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       if (!capabilities.safePag) next.model_patches.safe_pag = settings.model_patches.safe_pag;
       if (!capabilities.artistMix) next.artist_mix = settings.artist_mix;
       if (!capabilities.torchCompile) next.model_patches.kj.torch_compile = settings.model_patches.kj.torch_compile;
+      modelSettings?.apply(next);
       writeSettings(node, widget, next);
       renderGeneratorPanel(node);
       backdrop.remove();

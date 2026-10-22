@@ -293,6 +293,7 @@
         "/shape/model_patches/kj/torch_compile/dynamo_cache_size_limit",
         "/shape/model_patches/kj/torch_compile/fullgraph",
         "/shape/model_patches/kj/torch_compile/mode",
+        "/shape/model_patches/kj/torch_compile/provider",
         "/shape/model_patches/safe_pag/block_indices",
         "/shape/model_patches/safe_pag/end_percent",
         "/shape/model_patches/safe_pag/head_indices",
@@ -511,7 +512,7 @@
         "python_typed": "generation-settings",
         "frontend_default": "settings-core",
         "frontend_sanitization": "extension-preserve",
-        "ui": "hidden-extension",
+        "ui": "advanced-dialog",
         "documentation": "architecture-static-fields"
       },
       "paths": [

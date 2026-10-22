@@ -18,6 +18,7 @@ from ..prompt.conditioning import (
     ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
 )
 from ..seed.reservation import SEED_CONTROL_FIXED
+from .optimization import TORCH_COMPILE_DEFAULTS
 from .generation_migrations import (
     AIO_GENERATION_SETTINGS_CURRENT_VERSION as AIO_GENERATION_SETTINGS_VERSION,
     AIO_GENERATION_SETTINGS_SCHEMA,
@@ -106,9 +107,9 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         },
         "dave": {
             "enabled": False,
-            "mask": "dave_alpha.npz",
+            "mask": "auto",
             "strength": 0.30,
-            "tau": 0.10,
+            "tau": 0.06,
             "stage_scope": {
                 stage_id: stage_id == "first_pass"
                 for stage_id in AIO_GENERATION_STAGE_IDS
@@ -137,17 +138,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
                 stage_id: stage_id == "first_pass"
                 for stage_id in AIO_GENERATION_STAGE_IDS
             },
-            "torch_compile": {
-                "enabled": False,
-                "backend": "inductor",
-                "fullgraph": False,
-                "mode": "max-autotune-no-cudagraphs",
-                "dynamic": "false",
-                "compile_transformer_blocks_only": True,
-                "dynamo_cache_size_limit": 64,
-                "debug_compile_keys": False,
-                "disable_dynamic_vram": True,
-            },
+            "torch_compile": dict(TORCH_COMPILE_DEFAULTS),
         },
     },
     "mod_guidance": {

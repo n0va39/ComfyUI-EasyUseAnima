@@ -13,9 +13,9 @@ const NATIVE_DIT_CAPABILITIES = {
 };
 
 export const AIO_GENERATOR_MODEL_PROFILES = {
-  EasyUseAnimaAIOGenerator: { family: "anima", label: "Anima", capabilities: ANIMA_CAPABILITIES },
-  EasyUseMossAIOGenerator: { family: "moss_image", label: "MOSS", capabilities: { ...NATIVE_DIT_CAPABILITIES, negpip: true, torchCompile: false } },
-  EasyUseKrea2AIOGenerator: { family: "krea2", label: "Krea2", capabilities: NATIVE_DIT_CAPABILITIES },
+  EasyUseAnimaAIOGenerator: { family: "anima", label: "Anima", spectrumDependencyKey: "spectrumPatch", capabilities: ANIMA_CAPABILITIES },
+  EasyUseMossAIOGenerator: { family: "moss_image", label: "MOSS", spectrumDependencyKey: "spectrumMossModelPatch", capabilities: { ...NATIVE_DIT_CAPABILITIES, negpip: true, torchCompile: false } },
+  EasyUseKrea2AIOGenerator: { family: "krea2", label: "Krea2", spectrumDependencyKey: "spectrumKrea2ModelPatch", capabilities: NATIVE_DIT_CAPABILITIES },
 };
 
 export const AIO_MODEL_CAPABILITY_SPECS = Object.fromEntries(
@@ -99,6 +99,21 @@ function resolvedProfile(profile) {
     ...profile,
     capabilities,
     feature: (name, stage = "sampler") => featureCapability(profile, name, stage),
+    optimizationProviders: (feature) => {
+      const providers = capabilityManifests.get(profile.family)?.optimization_providers?.[feature];
+      if (Array.isArray(providers)) {
+        return providers.filter((provider) => (
+          typeof provider?.id === "string" && typeof provider.node_id === "string"
+          && Array.isArray(provider.models) && provider.models.includes(profile.family)
+          && ["available", "missing_dependency", "incompatible"].includes(provider.status)
+        )).map((provider) => ({ ...provider, models: [...provider.models] }));
+      }
+      // Older servers know only KJ compile. Never expose a new provider they
+      // would ignore while silently executing the legacy KJ settings instead.
+      return feature === "torch_compile" ? [{
+        id: "kj", node_id: "TorchCompileModelAdvanced", models: [profile.family], status: "available",
+      }] : [];
+    },
   };
 }
 

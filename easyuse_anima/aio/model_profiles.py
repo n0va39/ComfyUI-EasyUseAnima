@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from .capabilities import aio_feature_support
+from .optimization import optimization_provider
+from .moss_features import moss_feature_provider, moss_settings, moss_slg_settings, normalize_moss_settings
 
 
 @dataclass(frozen=True)
@@ -59,6 +61,9 @@ def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
     profile = aio_model_profile(family)
     result = deepcopy(defaults)
     result["model_family"] = family
+    if family == "moss_image":
+        bank = result.setdefault("model_settings", {})
+        bank[family] = normalize_moss_settings(bank.get(family))
     if family != "anima":
         result["sampler"].update(
             steps=profile.steps, cfg=profile.cfg,
@@ -76,6 +81,15 @@ def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
             )
             stage["spectrum"]["enabled"] = False
             stage["dit_corrections"]["enabled"] = False
+    if family == "krea2":
+        for stage in (result["sampler"], result["highres"], result["upscale"], *(
+            result["detailer"][target] for target in ("face", "eye")
+        )):
+            # Match the model patch's Turbo defaults; normalization merges saved
+            # values afterward, so existing workflows keep their own tuning.
+            stage["spectrum"].update(
+                warmup_steps=3, tail_actual_steps=2, cheby_degree=1, history_size=8,
+            )
     return result
 
 
@@ -83,15 +97,18 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None, node
     family = settings.get("model_family", "anima")
     profile = aio_model_profile(family)
     if settings["sampler"]["backend"] not in profile.sampler_backends:
-        detail = (
-            "Native MOSS currently requires ComfyUI KSampler; upstream Spectrum "
-            "2.12.1 targets a different MOSS loader and time-embedding contract."
-            if family == "moss_image" else "Use ComfyUI KSampler."
-        )
         raise ValueError(
             f"[EasyUseAnima] {profile.name} does not support this sampler backend. "
-            + detail
+            "Use ComfyUI KSampler with the model-specific Spectrum MODEL patch for forecasting."
         )
+    compile_settings = settings.get("model_patches", {}).get("kj", {}).get("torch_compile", {})
+    provider_id = compile_settings.get("provider", "kj")
+    if compile_settings.get("enabled", False) and (family != "anima" or provider_id != "kj"):
+        _, status = optimization_provider(family, "torch_compile", provider_id, node_lookup)
+        if status != "available":
+            raise ValueError(
+                f"[EasyUseAnima] {profile.name} Torch Compile provider '{provider_id}' is {status}."
+            )
     if family == "anima":
         return
     patches = settings["model_patches"]
@@ -104,7 +121,6 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None, node
         "safe_pag": ("Safe PAG", patches["safe_pag"]["enabled"]),
         "sage_attention": ("SageAttention", patches["kj"]["sage_attention"] != "disabled"),
         "fp16_accumulation": ("KJ FP16 accumulation", patches["kj"]["fp16_accumulation"]),
-        "torch_compile": ("KJ Torch Compile", patches["kj"]["torch_compile"]["enabled"]),
         "highres": ("Highres", settings["highres"]["enabled"]),
         "upscale": ("Upscale", settings["upscale"]["enabled"]),
         "detailer": ("Detailer", settings["detailer"]["enabled"]),
@@ -133,6 +149,16 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None, node
             )
             if stage[feature]["enabled"] and not support["supported"]:
                 unsupported.append(f"{stage_name}: {label} ({support['reason_code']})")
+        stage_id = "first_pass" if stage_name == "sampler" else stage_name.split(".")[0]
+        slg = moss_slg_settings(settings, stage_id)
+        if slg is not None:
+            _, status = moss_feature_provider("slg", slg["mode"], node_lookup)
+            if status != "available":
+                unsupported.append(f"{stage_name}: MOSS {slg['mode']} SLG ({status})")
+    if family == "moss_image" and moss_settings(settings)["prompt"]["mode"] == "enhance":
+        _, status = moss_feature_provider("prompt_enhance", node_lookup=node_lookup)
+        if status != "available":
+            unsupported.append(f"MOSS prompt enhancement ({status})")
     if unsupported:
         raise ValueError(
             f"[EasyUseAnima] {profile.name} cannot use these model-specific features. "
