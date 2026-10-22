@@ -4,7 +4,10 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 
 ## Release Rules
 
-- Keep `pyproject.toml` version in semantic version format: `X.Y.Z`.
+- Stable Registry releases use `pyproject.toml` version `X.Y.Z`.
+- Explicitly requested GitHub-only test releases may use a PEP 440 development
+  version such as `1.8.0.dev1`. Mark the release `TEST` and `Pre-release`, keep
+  it out of Latest, and do not dispatch Registry publishing or metadata sync.
 - Patch version: bug fixes and documentation-only changes.
 - Minor version: backward-compatible node inputs, UI, or behavior additions.
 - Major version: breaking node class names, input names, output types, workflow
@@ -16,7 +19,9 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 - Keep `main` as the stable user/install branch.
 - Do regular development, UI experiments, Node 2.0 compatibility work, and compatibility investigations on `dev` or short-lived `feature/*` branches.
 - Merge into `main` only after local tests, custom-node checks, and at least one ComfyUI instance validation pass.
-- Create release tags only from `main` commits. Do not tag `dev`.
+- Create stable release tags only from `main` commits. Do not tag `dev`.
+  GitHub-only test releases may tag an explicitly selected, validated candidate
+  on a separate release branch without promoting it to `main`.
 - If `main` breaks after release, fix from a short-lived `hotfix/*` branch, merge into `main`, bump the patch version, and create a new tag.
 - Treat ComfyUI Manager nightly/latest installs as `main` consumers, so do not push unvalidated development work directly to `main`.
 

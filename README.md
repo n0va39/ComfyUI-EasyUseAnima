@@ -1,5 +1,10 @@
 # ComfyUI EasyUse Anima
 
+> **1.8.0.dev1 — TEST / 테스트 버전.** Requires the paired Spectrum fork with
+> MOSS and Krea2 model patches. Use the exact downloads and installation steps
+> in the [test release](https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v1.8.0.dev1).
+> RAW checkpoint quality/performance remains unverified. GitHub pre-release only.
+
 Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA presets,
 wildcards, model-specific AiO generation for Anima, MOSS and Krea2, and
 ANIMA/Spectrum workflow helpers for ComfyUI.

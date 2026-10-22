@@ -1,0 +1,7 @@
+EasyUse Anima 1.8.0.dev1 TEST pre-release for Spectrum MOSS and Krea2
+
+Changes:
+Use MOSS and Krea2 Spectrum acceleration in AiO generation, Highres, Detailer and USDU with the paired Spectrum fork. Existing Anima workflows and saved settings remain compatible. Krea2 accepts checkpoint-specific steps, CFG and shift instead of requiring Turbo settings.
+
+Action required:
+This test version is distributed on GitHub only. Install the paired Spectrum fork from the test release, update the existing node folders without duplicate enabled copies, restart ComfyUI and refresh the browser. Real RAW checkpoint quality and speed remain unverified. Mod Guidance and Anima-specific corrections are not added for MOSS or Krea2.

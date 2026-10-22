@@ -1,5 +1,9 @@
 # ComfyUI EasyUse Anima
 
+> **1.8.0.dev1 — TEST version.** MOSS/Krea2 Spectrum acceleration requires the
+> paired Spectrum fork. Follow the [test release installation guide](https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v1.8.0.dev1).
+> RAW checkpoint quality/performance remains unverified. GitHub pre-release only.
+
 Language: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
 License: **GPL-3.0-or-later**. See [LICENSE](LICENSE) for the full terms and

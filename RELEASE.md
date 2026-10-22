@@ -1,5 +1,44 @@
 # Release Notes
 
+## 1.8.0.dev1
+
+### Added
+
+- **TEST pre-release:** MOSS and Krea2 can use Spectrum acceleration in AiO's
+  first pass, Highres, Detailer and USDU with the paired Spectrum fork.
+- Krea2 accepts RAW/custom sampling settings as well as Turbo settings.
+  Eight steps is a Turbo starting default, not a limit.
+
+### Fixed
+
+- Recognize the public `Spectrum Model Patch (MOSS)` and
+  `Spectrum Model Patch (Krea2)` nodes while retaining older node IDs.
+- Preserve saved steps, CFG, shift and per-stage Spectrum settings.
+
+### Compatibility
+
+- Use ComfyUI 0.42.1 or newer. The paired dependency is the
+  [n0va39 Spectrum fork at fc77a14](https://github.com/n0va39/ComfyUI-Spectrum-KSampler/tree/fc77a1413b460fd3598ca50732f8bafcff7bab52).
+  The ordinary upstream release does not yet provide these model patches.
+- Krea2 support is experimental. Real RAW checkpoint quality/performance is
+  unverified; set steps, CFG and shift for your checkpoint. No broad speed or
+  image-quality improvement is guaranteed.
+- This enables forecast acceleration only. MOSS/Krea2 Mod Guidance, SPD and
+  Anima-specific corrections remain unavailable.
+- Model weights and optional Highres/Detailer/USDU dependencies are not bundled.
+  Existing Anima workflows and settings remain compatible.
+
+### Update
+
+- Install the two ZIPs from the
+  [test release](https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v1.8.0.dev1),
+  updating the existing node folders without duplicate enabled copies.
+- Restart ComfyUI and hard-refresh the browser. Keep the previous installations
+  outside `custom_nodes` for rollback. This is a GitHub-only pre-release;
+  Manager's stable update channel will not install this test version.
+- EasyUse Anima remains GPL-3.0-or-later; preserve its license notices.
+  The separate Spectrum fork retains its MIT license.
+
 ## 1.7.0
 
 ### Added
