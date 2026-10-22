@@ -3,21 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from .optimization import TORCH_COMPILE_DEFAULTS
 
-AIO_TORCH_COMPILE_RECOMMENDATION_POLICY_VERSION = "recommendation-v1"
+AIO_TORCH_COMPILE_RECOMMENDATION_POLICY_VERSION = "recommendation-v2"
 
 _LOW_VRAM_LIMIT_MB = 8192
 _HIGH_VRAM_MINIMUM_MB = 15360
 _COMMON_VALUES = {
+    **{key: value for key, value in TORCH_COMPILE_DEFAULTS.items() if key != "provider"},
     "enabled": True,
-    "backend": "inductor",
-    "fullgraph": False,
-    "mode": "default",
-    "dynamic": "auto",
-    "compile_transformer_blocks_only": True,
-    "dynamo_cache_size_limit": 64,
-    "debug_compile_keys": False,
-    "disable_dynamic_vram": False,
 }
 
 
@@ -86,7 +80,10 @@ def classify_torch_compile_workload(
     if not stage_contract_known:
         reasons.append("stage_shape_contract_unknown")
 
-    if active_shape_stages:
+    variable_tokens = generation_settings.get("model_family") in ("moss_image", "krea2")
+    if variable_tokens:
+        reasons.append("model_uses_variable_text_tokens")
+    if active_shape_stages or variable_tokens:
         shape_class = "variable_shapes"
     elif not resolution_known or not batch_known or not stage_contract_known:
         shape_class = "unknown"
@@ -185,6 +182,13 @@ def recommend_torch_compile(
         "reason_codes": list(dict.fromkeys(reason_codes)),
         "warnings": warnings,
     }
+    patches = _mapping(generation_settings.get("model_patches")) or {}
+    kj = _mapping(patches.get("kj")) or {}
+    compile_settings = _mapping(kj.get("torch_compile")) or {}
+    if compile_settings.get("provider", "kj") != "kj":
+        payload.update(supported=False, profile="unsupported", values={},
+                       reason_codes=[*payload["reason_codes"], "provider_has_own_compile_settings"])
+        return payload
     if diagnostics.get("supported") is not True:
         payload.update(
             {

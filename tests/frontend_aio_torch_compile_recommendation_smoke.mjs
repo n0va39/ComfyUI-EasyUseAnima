@@ -46,6 +46,18 @@ assert.deepEqual(
   "The request must contain only bounded workload facts",
 );
 assert.deepEqual(settings, originalSettings, "Building a request must not mutate settings");
+const modelRequest = module.aioTorchCompileRecommendationRequest({
+  model_family: "moss_image",
+  model_patches: { kj: { torch_compile: { provider: "kj", private_path: "must-not-leak" } } },
+});
+assert.equal(modelRequest.generation_settings.model_family, "moss_image");
+assert.deepEqual(modelRequest.generation_settings.model_patches, { kj: { torch_compile: { provider: "kj" } } });
+assert.ok(!JSON.stringify(modelRequest).includes("must-not-leak"));
+const unknownModelRequest = module.aioTorchCompileRecommendationRequest({
+  model_family: "private-model-path", model_patches: { kj: { torch_compile: { provider: "private-provider-path" } } },
+});
+assert.equal(Object.hasOwn(unknownModelRequest.generation_settings, "model_family"), false);
+assert.equal(Object.hasOwn(unknownModelRequest.generation_settings, "model_patches"), false);
 assert.deepEqual(
   module.aioTorchCompileRecommendationRequest({
     highres: { enabled: "true" },

@@ -71,6 +71,10 @@ export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "TorchCompileModelAdvanced",
     pack: "ComfyUI-KJNodes",
   },
+  animaBlockCompile: {
+    nodeId: "AnimaBlockCompile",
+    pack: "ComfyUI-Anima-BlockCompile",
+  },
   impactDetailer: {
     nodeId: "DetailerForEach",
     pack: "ComfyUI-Impact-Pack",

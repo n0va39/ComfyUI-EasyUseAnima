@@ -1,6 +1,16 @@
 {
   "declarative_mutable_globals": [
     {
+      "module": "easyuse_anima/aio/moss_features.py",
+      "reason": "MOSS-specific feature defaults; callers clone before applying saved values.",
+      "symbols": ["MOSS_FEATURE_DEFAULTS"]
+    },
+    {
+      "module": "easyuse_anima/aio/optimization.py",
+      "reason": "Model-specific provider contracts and compile defaults; never mutated at runtime.",
+      "symbols": ["OPTIMIZATION_PROVIDERS", "TORCH_COMPILE_DEFAULTS"]
+    },
+    {
       "module": "easyuse_anima/aio/capabilities.py",
       "reason": "Reviewed feature policy and native provider ABI tables; never mutated at runtime.",
       "symbols": ["MOSS_SPECTRUM_CONTRACT", "SPECTRUM_MODEL_PATCHES", "_MODEL_FEATURES"]

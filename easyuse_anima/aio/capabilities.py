@@ -6,6 +6,7 @@ import inspect
 from typing import Any
 
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from .optimization import optimization_manifest, optimization_provider
 
 CAPABILITY_CONTRACT_VERSION = 1
 SAMPLING_STAGES = ("sampler", "highres", "detailer", "upscale")
@@ -19,7 +20,7 @@ _ANIMA_FEATURES = (
 )
 _MODEL_FEATURES = {
     "anima": _ANIMA_FEATURES,
-    "moss_image": (*_COMMON_FEATURES, "negpip"),
+    "moss_image": (*_COMMON_FEATURES, "negpip", "dave", "torch_compile"),
     "krea2": (*_COMMON_FEATURES, "torch_compile"),
 }
 
@@ -130,6 +131,17 @@ def aio_feature_support(
         "adapter": "",
         "reason_code": "" if supported else "model_feature_unsupported",
     }
+    if family == "moss_image" and feature in ("dave", "torch_compile"):
+        provider_id = "anima_dave" if feature == "dave" else "kj"
+        _, status = optimization_provider(family, feature, provider_id, node_lookup or _find_provider)
+        supported = status == "available" and stage in SAMPLING_STAGES
+        result.update(
+            supported=supported, status=status,
+            stages=list(SAMPLING_STAGES) if status == "available" else [],
+            provider="ComfyUI-Anima-DAVE" if feature == "dave" else "ComfyUI-KJNodes",
+            adapter="AnimaDAVE" if feature == "dave" else "TorchCompileModelAdvanced",
+            reason_code="" if supported else f"{feature}_provider_{status}",
+        )
     if family in SPECTRUM_MODEL_PATCHES and feature == "spectrum":
         node_id, node, status = spectrum_model_patch_provider(family, node_lookup)
         reason_prefix = SPECTRUM_MODEL_PATCHES[family]["reason_prefix"]
@@ -158,6 +170,7 @@ def aio_capability_manifest(family: str, *, node_lookup=None) -> dict[str, Any]:
     return {
         "contract_version": CAPABILITY_CONTRACT_VERSION,
         "model_family": family,
+        "optimization_providers": optimization_manifest(family, node_lookup or _find_provider),
         "features": {
             feature: aio_feature_support(family, feature, node_lookup=node_lookup)
             for feature in _ANIMA_FEATURES

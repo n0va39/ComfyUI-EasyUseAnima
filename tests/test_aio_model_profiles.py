@@ -389,7 +389,9 @@ class AIOModelProfileTests(unittest.TestCase):
         self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 4.5)
         self.assertEqual(settings["mod_guidance"]["mode"], "disabled")
         self.assertEqual(settings["artist_mix"]["mode"], "off")
-        self.assertEqual(settings["model_settings"], source["model_settings"])
+        self.assertEqual(settings["model_settings"]["anima"], source["model_settings"]["anima"])
+        self.assertEqual(settings["model_settings"]["moss_image"]["slg"]["mode"], "off")
+        self.assertEqual(settings["model_settings"]["moss_image"]["prompt"]["mode"], "original")
         self.assertEqual(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS, original)
         model_profiles.validate_aio_model_settings(settings)
 
@@ -404,7 +406,7 @@ class AIOModelProfileTests(unittest.TestCase):
     def test_unsupported_spectrum_fails_before_any_resource_or_adapter_load(self):
         settings = self.settings(sampler={"backend": "spectrum_mod_guidance_advanced"})
         with patch.object(legacy_generation, "_load_aio_resources_from_input_context") as load:
-            with self.assertRaisesRegex(ValueError, "different MOSS loader"):
+            with self.assertRaisesRegex(ValueError, "model-specific Spectrum MODEL patch"):
                 legacy_generation._run_aio_generation_pipeline(
                     object(), {"prompt_data": {}}, settings,
                 )
@@ -414,7 +416,6 @@ class AIOModelProfileTests(unittest.TestCase):
         for path in (
             ("model_patches", "dave", "enabled"),
             ("model_patches", "safe_pag", "enabled"),
-            ("model_patches", "kj", "torch_compile", "enabled"),
             ("sampler", "spectrum", "enabled"),
             ("sampler", "dit_corrections", "enabled"),
         ):
@@ -438,7 +439,8 @@ class AIOModelProfileTests(unittest.TestCase):
                     "torch_compile": {"enabled": family == "krea2"},
                 }},
             )
-            model_profiles.validate_aio_model_settings(settings, aio_hook=object())
+            with patch.object(model_profiles, "optimization_provider", return_value=(object, "available")):
+                model_profiles.validate_aio_model_settings(settings, aio_hook=object())
             for stage in (settings["highres"], settings["upscale"], settings["detailer"]["custom_1"]):
                 self.assertEqual(stage["steps"], steps)
                 self.assertEqual(stage["cfg"], cfg)
@@ -542,3 +544,35 @@ class AIOModelProfileTests(unittest.TestCase):
         self.assertEqual(first, first_pass_cache._aio_first_pass_cache_key(**args))
         settings["model_family"] = "anima"
         self.assertNotEqual(first, first_pass_cache._aio_first_pass_cache_key(**args))
+
+    def test_moss_slg_is_scoped_in_stage_plans_and_first_pass_cache(self):
+        settings = self.settings(model_settings={"moss_image": {"slg": {
+            "mode": "uncond", "layers": "22", "stage_scope": {"highres": False},
+        }}})
+        first_plan = model_preparation._aio_stage_model_patch_plan(settings, "first_pass")
+        highres_plan = model_preparation._aio_stage_model_patch_plan(settings, "highres")
+        self.assertIn("moss.slg", first_plan.patch_ids)
+        self.assertNotIn("moss.slg", highres_plan.patch_ids)
+        with (
+            patch.object(model_preparation, "_patch_aio_model_sampling", return_value="sampling"),
+            patch.object(model_preparation, "_apply_aio_kj_model_patches", return_value="optimized"),
+            patch.object(model_preparation, "apply_moss_slg", return_value="slg") as apply_slg,
+        ):
+            self.assertEqual(model_preparation._apply_aio_stage_model_patch_plan("base", first_plan), "slg")
+            self.assertEqual(apply_slg.call_args.args[:2], ("optimized", first_plan.payload["moss_slg"]))
+        args = dict(
+            cache_scope="moss-slg", context={}, prompt_data={}, lora_stack=None,
+            settings=settings, positive_prompt="image", negative_prompt="",
+            quality_tags="", quality_neg="", use_anima_mod_guidance=False,
+            use_negative_anima_mod_guidance=False, width=1024, height=1024,
+        )
+        first = first_pass_cache._aio_first_pass_cache_key(**args)
+        slg = settings["model_settings"]["moss_image"]["slg"]
+        slg["layers"] = "24"
+        self.assertNotEqual(first, first_pass_cache._aio_first_pass_cache_key(**args))
+        slg["stage_scope"]["first_pass"] = False
+        inactive = first_pass_cache._aio_first_pass_cache_key(**args)
+        slg["layers"] = "26"
+        self.assertEqual(inactive, first_pass_cache._aio_first_pass_cache_key(**args))
+        settings["model_family"] = "krea2"
+        self.assertNotIn("moss.slg", model_preparation._aio_stage_model_patch_plan(settings, "first_pass").patch_ids)

@@ -507,7 +507,10 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(typed["model_family"], "moss_image")
         self.assertEqual(typed["sampler"]["steps"], 31)
         self.assertEqual(typed["sampler"]["cfg"], 4.0)
-        self.assertEqual(typed["model_settings"], before["model_settings"])
+        self.assertEqual(typed["model_settings"]["moss_image"]["sampler"], before["model_settings"]["moss_image"]["sampler"])
+        self.assertEqual(typed["model_settings"]["moss_image"]["slg"]["mode"], "off")
+        self.assertEqual(typed["model_settings"]["moss_image"]["prompt"]["mode"], "original")
+        self.assertEqual(typed["model_settings"]["future_family"], before["model_settings"]["future_family"])
         typed["model_settings"]["future_family"]["extension"][0]["keep"] = False
         self.assertEqual(source, before)
 
@@ -553,6 +556,12 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         for path, _value in _default_leaves(manifest["default"]):
             source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
             _delete_path(source, path)
+            if path == ("model_patches", "kj", "torch_compile", "provider"):
+                # Old typed snapshots omit this additive selector and retain their shape.
+                config = _aio_generation_config_from_dict(source)
+                self.assertEqual(config.model_patches.kj.torch_compile.provider, "kj")
+                self.assertEqual(config.to_dict(), source)
+                continue
             try:
                 _aio_generation_config_from_dict(source)
             except (TypeError, ValueError):
@@ -675,7 +684,9 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                 normalized = generation_normalization._normalize_aio_generation_settings(serialized)
 
         self.assertEqual(serialized, serialized_before)
-        self.assertEqual(normalized, fixture["expected_normalized_generation_settings"])
+        expected = copy.deepcopy(fixture["expected_normalized_generation_settings"])
+        expected["model_patches"]["kj"]["torch_compile"]["provider"] = "kj"
+        self.assertEqual(normalized, expected)
 
     def test_manifest_shape_covers_every_default_leaf_with_matching_types(self):
         manifest = _manifest()

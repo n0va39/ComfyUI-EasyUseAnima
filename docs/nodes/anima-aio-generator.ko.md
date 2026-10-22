@@ -21,8 +21,13 @@ MOSS/Krea2는 txt2img, 코어 LoRA 로딩, Artist Mix, Highres, SAM3 Detailer,
 USDU/ResShift Upscale, KJ SageAttention·FP16 accumulation,
 일반 AiO hook, 미리보기·후처리·저장을 지원합니다. 선택 기능의 외부 노드와
 로컬 모델은 별도로 필요합니다. Anima IP-Adapter hook은 Anima 전용입니다.
-Torch Compile은 Krea2에서 지원합니다. MOSS는 현재 네이티브 attention 및
-양자화 커널의 컴파일 호환성 문제로 비활성화되어 있습니다.
+Torch Compile은 세 모델에서 KJ 제공자를 선택할 수 있고, Anima에서는
+Anima Block Compile도 선택할 수 있습니다. 컴파일은 기본 off이며 저장된 튜닝은 유지합니다.
+ComfyUI v0.42.1의 MOSS INT8/ConvRot attention·fused-linear 커널은 Spectrum을 꺼도
+Inductor 컴파일에 실패한 사례가 있습니다. 설치 가능 여부와 실제 체크포인트 컴파일 성공은
+별개이며 AiO가 컴파일이나 attention 설정을 자동 변경하지 않습니다.
+최신 ComfyUI-Anima-DAVE의 MOSS 마스크를 사용하면 MOSS DAVE도 연결됩니다.
+새 DAVE 기본값은 auto 마스크·strength 0.3·tau 0.06이며 기존 명시값은 보존합니다.
 MOSS NegPip은 네이티브 MOSS를 지원하는 ComfyUI-ppm이 필요하며, 실제 MODEL·CLIP
 패치가 적용됐는지 확인합니다. Krea2 NegPip은 아직 지원하지 않습니다.
 MOSS와 Krea2의 Spectrum 예측 가속은 설치된 제공자가 해당 단계를 지원할 때
@@ -43,7 +48,9 @@ Krea2는 이에 의존하는 [Spectrum PR #12](https://github.com/sorryhyun/Comf
 
 Krea2 패치는 RAW와 Turbo가 공유하는 모델 구조를 대상으로 하며, 파일명으로
 종류를 추정하거나 8스텝·CFG 1을 강제하지 않습니다.
-[공식 RAW 예시](https://huggingface.co/krea/Krea-2-Raw)는 52스텝·CFG 3.5를 사용합니다.
+[공식 RAW 예시](https://huggingface.co/krea/Krea-2-Raw)는 52스텝·`--cfg 3.5`를 사용합니다.
+공식 코드의 guidance 정의는 Comfy CFG와 달라 이 값은 Comfy CFG **4.5**에 해당합니다.
+[공식 샘플러 계산식](https://github.com/krea-ai/krea-2/blob/main/sampling.py)을 참고하세요.
 사용하는 체크포인트에 맞게 steps·CFG·flow shift를 설정하면 Spectrum은 실제
 스케줄을 따릅니다. 실체크포인트 검증은 현재 Turbo INT8에 한정되며 RAW 가중치의
 출력 품질과 속도는 검증하지 않았습니다.
@@ -52,9 +59,32 @@ Krea2 예측 가속은 실험적입니다. 새 Turbo 설정은 degree 1, history
 warmup 3, tail 2를 사용합니다. 기존 저장값은 유지하므로 warmup 6·tail 3인
 8스텝 워크플로우에는 예측 구간이 없을 수 있습니다. Spectrum을 끈 결과와
 품질을 비교하세요. 참조 이미지·다중 프레임·미지원 출력 헤드 양자화는 전체 계산으로 돌아갑니다.
-두 모델의 Anima Mod Guidance·DAVE·Safe PAG·DiT 보정,
+두 모델의 Anima Mod Guidance·Safe PAG·DiT 보정, Krea2 DAVE,
 Advanced/SPD 샘플러 백엔드는 아직 지원하지 않습니다. 예측 가속 지원만으로
 이 기능들이 활성화되지는 않습니다. 기존 Anima Spectrum 지원은 유지됩니다.
+
+## MOSS 전용 설정
+
+Advanced Options의 **MOSS 모델 기능**에서 다음 기능을 선택합니다. 기본값은
+SLG off와 원문 사용이므로 기존 워크플로우의 입력을 자동으로 확장하지 않습니다.
+
+- **SLG**: Uncond는 네거티브 분기를, Standard는 추가 예측을 사용합니다.
+  기본 레이어는 22이며 적용 구간과 최초 생성·Highres·Detailer·USDU를 따로 선택합니다.
+  Uncond에는 네거티브 분기가 필요합니다(CFG 1에서는 보통 생략됩니다).
+  Standard의 공식 권장 구간은 0.01–1입니다.
+- **프롬프트 확장**: 이미 선택한 MOSS 텍스트 인코더로 Comfy `TextGenerate`를 실행합니다.
+  추가 추론 시간이 들며, 시드·출력 길이·샘플링 설정을 지정할 수 있습니다.
+  입력과 실제 생성에 사용한 문장을 실행 메타데이터에 기록합니다.
+- **Layout JSON**: 공식 `summary`/`items` 구조를 붙여 넣습니다. 빈칸이면 입력 prompt의
+  JSON을 사용합니다. 기존 `MOSSImageLayoutPrompt` 노드의 문자열 출력도 이용할 수 있습니다.
+  박스 좌표는 생성 캔버스 중심 기준 픽셀이므로 작성한 레이아웃과 최초 생성 해상도를 맞추세요.
+  원문 모드에 직접 입력한 Layout JSON도 보존합니다. Layout은 NegPip off,
+  Layout·확장 모드는 Artist Mix off가 필요하며 충돌 시 값 변경 없이 안내합니다.
+
+MOSS 자연어의 개행·인용문과 JSON은 Anima 태그 정리로 재작성하지 않습니다.
+모델의 공식 긴 프롬프트 지원은 최대 4K 토큰이며, 확장 노드의 출력 길이 상한과는 다릅니다.
+참조 이미지 생성·GIF 등 향후 모델 기능은 현재 지원으로 표시하지 않습니다.
+[MOSS 공식 기능·Layout 가이드](https://github.com/OpenMOSS/MOSS-Image/blob/main/USERGUIDE.md)
 
 카테고리: `EasyUse Anima/AiO`
 

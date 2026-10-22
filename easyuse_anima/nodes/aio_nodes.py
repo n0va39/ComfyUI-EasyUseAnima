@@ -350,9 +350,13 @@ class EasyUseMossAIOGenerator(EasyUseAnimaAIOGenerator):
     DESCRIPTION = (
         "MOSS txt2img with core ComfyUI KSampler. Use Easy Use Anima Input with "
         "native MOSS-Image, Qwen3.5 9B, CLIP type moss_image and FLUX.2 VAE. "
-        "Supports Highres, SAM3 Detailer, USDU/ResShift, Artist Mix, generic AiO "
-        "hooks, SageAttention and FP16 accumulation. NegPip requires native-MOSS "
-        "ComfyUI-ppm support. Anima patches, Spectrum and TorchCompile are unavailable."
+        "Supports Highres, SAM3 Detailer, USDU/ResShift and AiO hooks. Advanced "
+        "Options > MOSS settings provides SLG, text prompt enhancement and Layout "
+        "JSON; Optimization provides attention and compile settings. DAVE requires "
+        "a provider with a MOSS mask; Spectrum requires a compatible MOSS model-patch "
+        "provider. Compile compatibility depends on the checkpoint and runtime. "
+        "Artist Mix and NegPip depend on prompt mode; NegPip also requires "
+        "native-MOSS ComfyUI-ppm support."
     )
 
 
@@ -364,9 +368,11 @@ class EasyUseKrea2AIOGenerator(EasyUseAnimaAIOGenerator):
         "Krea2 txt2img with core ComfyUI KSampler. Defaults target Turbo: "
         "8 steps, CFG 1, Euler/simple, native Flux shift 1.15. Use Easy Use Anima "
         "Input with Krea2, Qwen3-VL 4B, CLIP type krea2 and Qwen Image VAE. "
-        "RAW requires its own sampling settings. Supports Highres, SAM3 Detailer, "
-        "USDU/ResShift, Artist Mix, generic AiO hooks and KJ optimizations. "
-        "Anima patches, Spectrum and NegPip are unavailable."
+        "RAW/custom checkpoints require their own recommended sampling settings. "
+        "Supports Highres, SAM3 Detailer, USDU/ResShift, Artist Mix and AiO hooks. "
+        "Advanced Options > Optimization provides attention and compile settings. "
+        "Spectrum requires a compatible Krea2 model-patch provider. DAVE, Safe PAG, "
+        "Mod Guidance and NegPip are unavailable for Krea2."
     )
 
 

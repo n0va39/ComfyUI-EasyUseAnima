@@ -399,7 +399,11 @@ class AIOGenerationConfigTests(unittest.TestCase):
             normalized = generation_normalization._normalize_aio_generation_settings(serialized)
 
         self.assertEqual(serialized, serialized_before)
-        self.assertEqual(normalized, fixture["expected_normalized_generation_settings"])
+        expected = copy.deepcopy(fixture["expected_normalized_generation_settings"])
+        # Older saved KJ settings gain only the additive provider selector;
+        # their explicit compile mode, dynamic mode, and VRAM policy survive.
+        expected["model_patches"]["kj"]["torch_compile"]["provider"] = "kj"
+        self.assertEqual(normalized, expected)
 
 
 if __name__ == "__main__":

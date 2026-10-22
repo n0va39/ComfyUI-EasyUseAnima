@@ -121,6 +121,7 @@ const {
   AIO_GENERATION_STAGE_IDS,
   aioAsBool,
   aioCloneJson,
+  aioGenerationDefaultsForFamily,
   aioMergeDefaults,
   aioMigrateGenerationSettingsVersion,
   aioMigrateGeneratorPostprocessSettings,
@@ -618,11 +619,14 @@ assert(
     && parsedMossSettings.sampler.cfg === 4,
   "Inactive model snapshots must not override the active top-level sampler settings",
 );
-assertJsonEqual(parsedMossSettings.model_settings, modelSnapshots, "Future model snapshots must round-trip without normalization");
+const expectedModelBanks = aioMergeDefaults(aioGenerationDefaultsForFamily("moss_image").model_settings, modelSnapshots);
+assertJsonEqual(parsedMossSettings.model_settings, expectedModelBanks, "Active MOSS defaults must preserve existing and future fields");
+assertJsonEqual(parsedMossSettings.model_settings.future_family, modelSnapshots.future_family, "Inactive future model snapshots remain unchanged");
+assertJsonEqual(parsedMossSettings.model_settings.moss_image.sampler, modelSnapshots.moss_image.sampler, "Legacy MOSS snapshot fields remain unchanged");
 assertJsonEqual(
   JSON.parse(aioSettingsToCompactJson(parsedMossSettings)).model_settings,
-  modelSnapshots,
-  "Compact serialization must preserve inactive snapshots",
+  expectedModelBanks,
+  "Compact serialization must preserve active MOSS settings and inactive snapshots",
 );
 
 const legacySettings = aioMergeDefaults(AIO_DEFAULT_GENERATION_SETTINGS, {

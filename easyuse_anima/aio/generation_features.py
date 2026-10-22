@@ -154,6 +154,7 @@ class AIOGenerationSafePAGConfig:
 class AIOGenerationTorchCompileConfig:
     state: ObjectState
     enabled: bool
+    provider: str
     backend: str
     fullgraph: bool
     mode: str
@@ -167,13 +168,14 @@ class AIOGenerationTorchCompileConfig:
     def from_value(cls, value: object, key: str) -> AIOGenerationTorchCompileConfig:
         source = expect_object(value, key)
         known = (
-            "enabled", "backend", "fullgraph", "mode", "dynamic",
+            "enabled", "provider", "backend", "fullgraph", "mode", "dynamic",
             "compile_transformer_blocks_only", "dynamo_cache_size_limit",
             "debug_compile_keys", "disable_dynamic_vram",
         )
         return cls(
             state=ObjectState.from_source(source, known),
             enabled=expect_bool(required(source, "enabled"), f"{key}.enabled"),
+            provider=expect_str(source.get("provider", "kj"), f"{key}.provider"),
             backend=expect_str(required(source, "backend"), f"{key}.backend"),
             fullgraph=expect_bool(required(source, "fullgraph"), f"{key}.fullgraph"),
             mode=expect_str(required(source, "mode"), f"{key}.mode"),
@@ -195,7 +197,9 @@ class AIOGenerationTorchCompileConfig:
 
     def to_dict(self) -> dict[str, object]:
         return self.state.compose({
-            "enabled": self.enabled, "backend": self.backend, "fullgraph": self.fullgraph,
+            "enabled": self.enabled,
+            **({"provider": self.provider} if "provider" in self.state.key_order else {}),
+            "backend": self.backend, "fullgraph": self.fullgraph,
             "mode": self.mode, "dynamic": self.dynamic,
             "compile_transformer_blocks_only": self.compile_transformer_blocks_only,
             "dynamo_cache_size_limit": self.dynamo_cache_size_limit,

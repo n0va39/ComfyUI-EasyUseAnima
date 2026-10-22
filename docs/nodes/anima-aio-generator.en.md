@@ -23,8 +23,13 @@ MOSS/Krea2 support txt2img, core LoRA loading, Artist Mix, Highres, SAM3 Detaile
 USDU/ResShift Upscale, KJ SageAttention/FP16 accumulation, generic
 AiO hooks, preview, postprocessing and saving. Optional features require their
 external nodes and local weights. The Anima IP-Adapter hook remains Anima-only.
-Torch Compile is available for Krea2. MOSS Torch Compile is disabled because
-the current native attention and quantized kernels fail compilation.
+KJ Torch Compile can be selected for all three models; Anima also offers
+Anima Block Compile. Compilation defaults to off and explicit saved tuning is preserved.
+MOSS INT8/ConvRot attention and fused-linear kernels on ComfyUI v0.42.1 have
+failed Inductor compilation with Spectrum disabled as well. Provider availability
+does not prove checkpoint kernel compatibility; AiO does not rewrite compile or attention settings.
+Recent ComfyUI-Anima-DAVE versions with the MOSS mask also support MOSS DAVE.
+New DAVE settings use the auto mask, strength 0.3 and tau 0.06; saved values survive.
 MOSS NegPip requires native-MOSS-capable ComfyUI-ppm; both MODEL and CLIP must
 report successful patching. Krea2 NegPip remains unsupported.
 MOSS and Krea2 Spectrum forecasting supports first pass, Highres, Detailer and
@@ -47,7 +52,9 @@ not a claim that an upstream release already includes the patches.
 The Krea2 adapter targets the shared model architecture, including RAW and Turbo;
 it does not classify checkpoints by filename or force eight steps / CFG 1.
 The [official RAW example](https://huggingface.co/krea/Krea-2-Raw) uses 52 steps
-and CFG 3.5. Set sampler steps, CFG and flow shift for the checkpoint you use;
+and `--cfg 3.5`. Its guidance convention corresponds to Comfy CFG **4.5**;
+see the [official sampler](https://github.com/krea-ai/krea-2/blob/main/sampling.py).
+Set sampler steps, CFG and flow shift for the checkpoint you use;
 Spectrum follows that actual schedule. Real-checkpoint validation currently
 covers Turbo INT8 only; RAW weights, output quality and speed are unverified.
 
@@ -56,10 +63,33 @@ three warmup and two final actual steps. Saved explicit values are preserved;
 older settings with six warmup and three tail steps may leave no forecasting
 window in an eight-step run. Compare quality with Spectrum disabled. Reference
 images, multi-frame inputs and unsupported head quantization use full computation.
-Anima Mod Guidance, DAVE, Safe PAG, DiT corrections and the
+Anima Mod Guidance, Safe PAG, DiT corrections, Krea2 DAVE and the
 Advanced/SPD sampler backends remain unavailable for MOSS/Krea2 as applicable.
 Forecast support does not enable those independent features. Existing Anima
 Spectrum support is preserved.
+
+## MOSS model features
+
+Advanced Options contains a separate **MOSS model features** section. SLG defaults
+to off and prompt mode to Original, so opening existing workflows does not enhance their text.
+
+- **SLG**: Uncond changes the negative branch; Standard adds a prediction pass.
+  Select layers (default 22), start/end and first-pass/Highres/Detailer/USDU scopes.
+  Uncond needs a negative branch, normally skipped at CFG 1. Standard's official range is 0.01–1.
+- **Prompt enhancement**: run Comfy `TextGenerate` with the selected MOSS encoder.
+  This costs additional inference time. Set seed, output length and sampling controls;
+  execution metadata records both input and the caption actually used.
+- **Layout JSON**: paste the official `summary`/`items` object, or leave the editor
+  empty to use the input prompt's JSON. The core `MOSSImageLayoutPrompt` string output
+  can feed the existing prompt path. Coordinates are pixels relative to the canvas centre;
+  match the layout's dimensions to the first-pass resolution. Original mode also preserves
+  directly supplied layouts. Layout requires NegPip off; Layout and enhancement require
+  Artist Mix off. Conflicts produce an explanation without changing saved settings.
+
+MOSS captions retain their newlines and quoted text, and layouts are not rewritten as tag lists.
+The model's advertised 4K-token context is separate from the text-generation output limit.
+Future reference-image generation and GIF features are not advertised as currently supported.
+[Official MOSS feature and Layout guide](https://github.com/OpenMOSS/MOSS-Image/blob/main/USERGUIDE.md).
 
 Category: `EasyUse Anima/AiO`
 

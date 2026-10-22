@@ -22,6 +22,8 @@ from .generation_migrations import (
     AIO_MODEL_PATCH_ORDER_REVISION,
 )
 from .model_profiles import aio_model_profile
+from .optimization import optimization_provider, resolve_dave_mask
+from .moss_features import apply_moss_slg, moss_slg_settings
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -242,6 +244,21 @@ def _apply_aio_kj_non_compile_patches(model, kj_settings: dict[str, Any]):
 def _apply_aio_kj_torch_compile_patch(model, kj_settings: dict[str, Any]):
     compile_settings = kj_settings.get("torch_compile", {})
     if isinstance(compile_settings, dict) and compile_settings.get("enabled"):
+        provider_id = str(compile_settings.get("provider") or "kj")
+        if provider_id != "kj":
+            config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", {})
+            family = config.get("image_model", "anima") if isinstance(config, dict) else "anima"
+            compile_cls, status = optimization_provider(
+                family, "torch_compile", provider_id, _find_comfy_node_class,
+            )
+            if compile_cls is None:
+                raise RuntimeError(f"[EasyUseAnima] Compile provider '{provider_id}' is {status} for {family}.")
+            values = _node_output_tuple(compile_cls().patch(model))
+            if len(values) != 1:
+                raise RuntimeError(f"[EasyUseAnima] Compile provider '{provider_id}' must return one MODEL.")
+            if values[0] is model:
+                logger.warning("[EasyUseAnima] %s did not apply compilation; check the provider's environment diagnostics.", provider_id)
+            return values[0]
         compile_cls = _require_custom_node_class(
             "TorchCompileModelAdvanced",
             "ComfyUI-KJNodes",
@@ -338,6 +355,10 @@ def _aio_stage_model_patch_plan(
     }
     if family != "anima":
         payload["model_family"] = family
+    slg = moss_slg_settings(settings, stage_id)
+    if slg is not None:
+        payload["moss_slg"] = slg
+        patch_ids.append("moss.slg")
     return StageModelPatchPlan(
         signature=_stable_change_key(payload),
         patch_ids=tuple(patch_ids),
@@ -378,6 +399,8 @@ def _apply_aio_stage_model_patch_plan(model, plan: StageModelPatchPlan):
         patched = _apply_aio_kj_non_compile_patches(patched, kj_settings)
     else:
         patched = _apply_aio_kj_model_patches(patched, kj_settings)
+    if payload.get("moss_slg") is not None:
+        patched = apply_moss_slg(patched, payload["moss_slg"], node_lookup=_find_comfy_node_class)
     return patched
 
 
@@ -450,11 +473,13 @@ def _apply_aio_anima_dave_patch(model, dave_settings: dict[str, Any]):
     patch = getattr(patcher, "patch", None)
     if patch is None:
         raise RuntimeError("[EasyUseAnima] AnimaDAVE does not expose patch().")
+    config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", {})
+    family = config.get("image_model", "anima") if isinstance(config, dict) else "anima"
     result = patch(
         model,
-        str(dave_settings.get("mask") or "dave_alpha.npz"),
+        resolve_dave_mask(dave_cls, family, dave_settings.get("mask")),
         _as_float(dave_settings.get("strength"), 0.30),
-        _as_float(dave_settings.get("tau"), 0.10),
+        _as_float(dave_settings.get("tau"), 0.06),
     )
     values = _node_output_tuple(result)
     if not values:

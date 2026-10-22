@@ -1,5 +1,73 @@
 # Model-specific AiO generators
 
+## Current model features and optimization (2026-10-23)
+
+The historical audits below describe their original candidates. Current work
+uses the model-patch APIs in Spectrum [#11](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/pull/11)
+and [#12](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/pull/12),
+with separate Anima, MOSS and Krea2 settings and capability checks.
+
+- MOSS owns `model_settings.moss_image`: opt-in unconditional or standard SLG,
+  stage scopes, caption enhancement through the loaded CLIP's `TextGenerate`,
+  and official structured Layout JSON. Natural captions and JSON retain their
+  original formatting. Anima and Krea2 do not execute this bank.
+- Provider adapters call public ComfyUI/extension nodes. KJ compilation is
+  selectable for all three families; Anima Block Compile belongs to Anima.
+  DAVE supports Anima and MOSS when its installed node exposes the appropriate
+  mask. Existing explicit selections and unknown future settings survive saves.
+- The shared Spectrum runner separates SLG block-replacement contexts without
+  globally disabling forecasting. The MOSS foundation has 46 CPU tests and the
+  stacked Krea2 candidate has 65, with no skips on ComfyUI v0.42.1.
+- MOSS INT8 Inductor currently fails in external Comfy Kitchen kernels even
+  without Spectrum. This is reported in the UI, without changing user settings.
+
+The final full gate passes on ComfyUI v0.42.1: 1,793 Python tests with three
+conditional skips, 127 JavaScript files, TypeScript 6.0.3 and the existing
+static/contract checks. Live Legacy Canvas and Node 2.0 checks cover separate
+model controls, English/Korean text, save/reload, Cancel, exact Layout JSON,
+inactive settings and a uint64 text-generation seed. Other locales have static
+coverage for the new controls. The original renderer/language preferences were
+restored after validation.
+
+Checkpoint checks run through the public Input and MOSS AiO nodes on an RTX
+5070 Ti with MOSS SFT INT8, its Qwen3.5 encoder and Flux2 VAE. All use 512x512,
+CFG 2.5, Euler/simple and Spectrum; every saved image was inspected and every
+saved raw latent was finite. No first-pass cache hit masked these checks.
+
+| AiO feature | Steps | Spectrum actual / forecast / fallback |
+| --- | ---: | ---: |
+| Unconditional SLG, layer 22 | 12 | 16 / 8 / 0 |
+| Standard SLG, layer 22, scale 3, range 0.01-1 | 12 | 24 / 11 / 0 |
+| Structured Layout JSON | 12 | 16 / 8 / 0 |
+| Prompt enhancement through the loaded CLIP | 8 | 12 / 4 / 0 |
+| DAVE, automatic MOSS mask, strength 0.3, tau 0.06 | 12 | 16 / 8 / 0 |
+
+Layout text and bounding-box intent appeared in the output; enhancement records
+the original and actual encoded text in metadata. DAVE logs confirm selection
+of `moss_dave_alpha.npz`. These are execution checks, not comparative quality
+or speed benchmarks. Saved PNG statistics do not establish the finiteness of
+the pre-encoding floating-point IMAGE tensor. Earlier Highres/Detailer/USDU
+evidence remains valid for the unchanged secondary-stage pipeline.
+
+The public Krea2 AiO path also completed with Turbo INT8, KJ Inductor, default
+compile mode, dynamic shapes set to `auto`, and dynamic VRAM left enabled.
+Its eight-step 512x512 run recorded 6 actual / 2 forecast / 0 fallback calls,
+preserved the selected provider/settings and produced a finite raw latent and
+an inspected image. Earlier standalone provider evidence covers a second
+640x512 pass; this AiO check targets provider selection and composition.
+
+Anima Block Compile is wired through its public node contract and covered by
+CPU tests; its optional node was not installed in this runtime, so this audit
+does not claim full-checkpoint execution for that provider. Krea2 RAW checkpoint
+quality/performance also remains unverified; saved non-Turbo schedules are
+preserved rather than rewritten to Turbo defaults.
+
+Reference inputs, animation and future model variants are not advertised as
+working merely because they can be represented in the settings bank. Add each
+through its owning model adapter and validate its actual public node contract.
+User-facing controls and current limitations are in the
+[generator guide](../nodes/anima-aio-generator.en.md).
+
 ## Locale and compatibility audit
 
 - Base: `95500dc`, same owned worktree.
@@ -283,7 +351,7 @@ Later changes to this document do not alter that code evidence.
 These are targeted compatibility/replay checks, not performance benchmarks or
 quality evaluations. No release, user-instance sync or model publication was made.
 
-## Spectrum boundary
+## Historical Spectrum boundary (before the model-patch PRs)
 
 Upstream [Spectrum 2.12.1 moss.py](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/blob/1baeab6f9ee94a75011353c6ef41963888cc8979/moss.py)
 registers a separate `MossSpectrumKSampler`. Its custom forward expects `freq_dim`
