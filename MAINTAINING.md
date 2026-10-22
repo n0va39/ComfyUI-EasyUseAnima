@@ -8,6 +8,11 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 - Explicitly requested GitHub-only test releases may use a PEP 440 development
   version such as `1.8.0.dev1`. Mark the release `TEST` and `Pre-release`, keep
   it out of Latest, and do not dispatch Registry publishing or metadata sync.
+- Explicitly authorized Registry betas use SemVer prereleases such as
+  `1.8.0-beta.1` on a separate validated release branch and immutable beta tag.
+  Disclose Manager prerelease limitations. Publish from that tag in publish
+  mode only; preserve all earlier version states and skip metadata apply/sync.
+  Beta publication does not require promotion to stable `main`.
 - Patch version: bug fixes and documentation-only changes.
 - Minor version: backward-compatible node inputs, UI, or behavior additions.
 - Major version: breaking node class names, input names, output types, workflow
@@ -192,7 +197,7 @@ workflow:
   separately reviewed change establishes an equivalent cache-poisoning
   boundary.
 
-For a new version, merge the validated release metadata to protected `main`,
+For a stable version, merge the validated release metadata to protected `main`,
 create and read back the matching immutable annotated tag, then dispatch
 `publish_action.yml` from `main` with `mode=publish` and the exact version.
 After Registry read-back, dispatch `registry_metadata.yml` with
@@ -204,7 +209,8 @@ release-policy change.
 
 - Confirm the Registry page for publisher `n0va39` shows the new version.
 - Confirm the already-pushed annotated tag resolves to the released `main`
-  commit. Tag creation is a pre-publish gate, not a post-publish repair step.
+  commit, or to the explicitly authorized Registry beta release commit.
+  Tag creation is a pre-publish gate, not a post-publish repair step.
 - Verify the live Registry API state, changelog, and download URL after publish
   and metadata sync. Do not redownload or compare the public archive as a
   routine release step when the pre-publish package evidence is still valid.

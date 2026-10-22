@@ -1,5 +1,31 @@
 # Release Notes
 
+## 1.8.0-beta.1
+
+### Added
+
+- **TEST / BETA:** MOSS and Krea2 Spectrum acceleration in AiO generation,
+  Highres, Detailer and USDU with the paired Spectrum fork.
+- Krea2 accepts checkpoint-specific steps, CFG and shift, including RAW/custom
+  settings. Real RAW checkpoint quality and speed remain unverified.
+
+### Fixed
+
+- Recognize public Spectrum Model Patch nodes while preserving older node IDs,
+  saved settings and existing Anima workflows.
+
+### Update
+
+- Use ComfyUI 0.42.1 or newer. Install the paired Spectrum MOSS/Krea2 ZIP from
+  the [test release](https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v1.8.0.dev1),
+  keeping only one enabled Spectrum installation. Restart ComfyUI and refresh
+  the browser. Model weights and optional stage dependencies are separate.
+- This Registry beta may appear as latest. Current ComfyUI-Manager versions
+  may fail to recognize the hyphenated beta version after installation.
+  The separate GitHub test release remains available for manual installation.
+- Earlier Registry versions retain their existing states. MOSS/Krea2 Mod
+  Guidance, SPD and Anima-specific corrections are not supported.
+
 ## 1.8.0.dev1
 
 ### Added

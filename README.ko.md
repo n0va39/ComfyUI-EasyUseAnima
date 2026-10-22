@@ -1,8 +1,9 @@
 # ComfyUI EasyUse Anima
 
-> **1.8.0.dev1 — TEST / 테스트 버전.** MOSS·Krea2 Spectrum 가속에는 함께 제공하는
+> **1.8.0-beta.1 — TEST / 테스트 버전.** MOSS·Krea2 Spectrum 가속에는 함께 제공하는
 > Spectrum 포크가 필요합니다. [테스트 릴리즈 설치 안내](https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v1.8.0.dev1)를 따라 설치하세요.
-> RAW 실가중치의 품질·속도는 미검증입니다. GitHub 사전 릴리즈로만 배포합니다.
+> RAW 실가중치의 품질·속도는 미검증입니다. Registry 베타 버전입니다.
+> 베타도 최신 버전으로 노출될 수 있으며, 현재 ComfyUI-Manager에서는 베타 버전 인식 문제가 있을 수 있습니다.
 
 언어: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 

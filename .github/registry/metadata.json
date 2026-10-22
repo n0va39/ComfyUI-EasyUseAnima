@@ -21,17 +21,21 @@
     {
       "version": "0.6.1",
       "reason": "GitHub-only historical release with no Comfy Registry row; do not backfill without a separate security review."
+    },
+    {
+      "version": "1.8.0.dev1",
+      "reason": "GitHub-only Spectrum test release; Registry beta is published separately as 1.8.0-beta.1."
     }
   ],
   "versions": [
     {
-      "version": "1.8.0.dev1",
+      "version": "1.8.0-beta.1",
       "deprecated": false,
-      "changelog_file": "changelogs/1.8.0.dev1.txt"
+      "changelog_file": "changelogs/1.8.0-beta.1.txt"
     },
     {
       "version": "1.7.0",
-      "deprecated": true,
+      "deprecated": false,
       "changelog_file": "changelogs/1.7.0.txt"
     },
     {
