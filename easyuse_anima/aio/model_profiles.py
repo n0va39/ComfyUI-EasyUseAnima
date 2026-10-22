@@ -76,6 +76,15 @@ def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
             )
             stage["spectrum"]["enabled"] = False
             stage["dit_corrections"]["enabled"] = False
+    if family == "krea2":
+        for stage in (result["sampler"], result["highres"], result["upscale"], *(
+            result["detailer"][target] for target in ("face", "eye")
+        )):
+            # Match the model patch's Turbo defaults; normalization merges saved
+            # values afterward, so existing workflows keep their own tuning.
+            stage["spectrum"].update(
+                warmup_steps=3, tail_actual_steps=2, cheby_degree=1, history_size=8,
+            )
     return result
 
 

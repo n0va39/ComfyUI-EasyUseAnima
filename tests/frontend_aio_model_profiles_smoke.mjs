@@ -67,6 +67,32 @@ const exactSeed = aioParseSettingsValue('{"sampler":{"seed":18446744073709551615
 assert.equal(exactSeed.sampler.seed, "18446744073709551615");
 assert.equal(exactSeed.sampler.cfg, 1);
 
+const kreaDefaults = parse({}, "krea2");
+for (const stage of [kreaDefaults.sampler, kreaDefaults.highres, kreaDefaults.upscale, kreaDefaults.detailer.face, kreaDefaults.detailer.eye]) {
+  assert.equal(stage.spectrum.enabled, false);
+  assert.equal(stage.spectrum.warmup_steps, 3);
+  assert.equal(stage.spectrum.tail_actual_steps, 2);
+  assert.equal(stage.spectrum.cheby_degree, 1);
+  assert.equal(stage.spectrum.history_size, 8);
+}
+const savedKrea = parse({sampler: {spectrum: {warmup_steps: 9}}, highres: {spectrum: {tail_actual_steps: 7}}, detailer: {face: {spectrum: {cheby_degree: 4}}}}, "krea2");
+assert.equal(savedKrea.sampler.spectrum.warmup_steps, 9);
+assert.equal(savedKrea.highres.spectrum.tail_actual_steps, 7);
+assert.equal(savedKrea.detailer.face.spectrum.cheby_degree, 4);
+assert.deepEqual(parse(JSON.parse(aioSettingsToCompactJson(savedKrea)), "krea2"), savedKrea);
+
+// RAW's published steps/CFG and an arbitrary user shift must survive the same
+// settings path. 2.3 is a preservation fixture, not a RAW shift recommendation.
+const rawKrea = parse({
+  sampler: { steps: 52, cfg: 3.5 },
+  model_patches: { aura_flow: { shift: 2.3 } },
+}, "krea2");
+const restoredRawKrea = parse(JSON.parse(aioSettingsToCompactJson(rawKrea)), "krea2");
+assert.equal(restoredRawKrea.sampler.steps, 52);
+assert.equal(restoredRawKrea.sampler.cfg, 3.5);
+assert.equal(restoredRawKrea.model_patches.aura_flow.shift, 2.3);
+assert.deepEqual(restoredRawKrea, rawKrea, "RAW/custom sampling is never reset to Turbo defaults");
+
 
 const entry = readFileSync(new URL("../web/js/easyuse_anima_aio.js", import.meta.url), "utf8");
 const kreaResourceHints = entry.split("\n").filter((line) => line.includes('"text.kreaRequirements":'));
@@ -92,7 +118,7 @@ function modelInfo(family, features, contractVersion = 1) {
 }
 const forecast = {
   supported: true, status: "available", stages: ["sampler"],
-  provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch", reason_code: "",
+  provider: "ComfyUI-Spectrum-KSampler", adapter: "SpectrumMossModelPatch", reason_code: "",
 };
 const allStages = { supported: true, status: "available", stages: ["sampler", "highres", "detailer", "upscale"], provider: "", adapter: "", reason_code: "" };
 aioUpdateModelCapabilities({

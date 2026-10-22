@@ -3,7 +3,7 @@
     {
       "module": "easyuse_anima/aio/capabilities.py",
       "reason": "Reviewed feature policy and native provider ABI tables; never mutated at runtime.",
-      "symbols": ["NATIVE_MOSS_SPECTRUM_CONTRACT", "_MODEL_FEATURES"]
+      "symbols": ["MOSS_SPECTRUM_CONTRACT", "SPECTRUM_MODEL_PATCHES", "_MODEL_FEATURES"]
     },
     {
       "module": "easyuse_anima/aio/model_profiles.py",

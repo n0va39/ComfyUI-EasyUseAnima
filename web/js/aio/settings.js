@@ -481,6 +481,11 @@ export function aioGenerationDefaultsForFamily(family = "anima") {
       stage.spectrum.enabled = false;
       stage.dit_corrections.enabled = false;
     }
+    if (family === "krea2") {
+      for (const stage of [defaults.sampler, defaults.highres, defaults.upscale, defaults.detailer.face, defaults.detailer.eye]) {
+        Object.assign(stage.spectrum, { warmup_steps: 3, tail_actual_steps: 2, cheby_degree: 1, history_size: 8 });
+      }
+    }
   }
   return defaults;
 }

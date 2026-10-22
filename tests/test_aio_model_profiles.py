@@ -32,6 +32,12 @@ class NativeMossProvider:
         return (("native", model, steps, compat_policy),)
 
 
+class Krea2Provider(NativeMossProvider):
+    SPECTRUM_CAPABILITIES = {
+        **NativeMossProvider.SPECTRUM_CAPABILITIES, "model_family": "krea2",
+    }
+
+
 class AIOCapabilityTests(unittest.TestCase):
     def settings(self, **overrides):
         return generation_normalization._normalize_aio_generation_settings(
@@ -73,7 +79,7 @@ class AIOCapabilityTests(unittest.TestCase):
             )
 
     def test_provider_availability_is_live_and_manifest_is_not_mutable_policy(self):
-        lookup = Mock(side_effect=[NativeMossProvider, None])
+        lookup = Mock(side_effect=[NativeMossProvider, None, None])
         self.assertTrue(capabilities.aio_feature_support("moss_image", "spectrum", node_lookup=lookup)["supported"])
         self.assertFalse(capabilities.aio_feature_support("moss_image", "spectrum", node_lookup=lookup)["supported"])
         manifest = capabilities.aio_capability_manifest("moss_image", node_lookup=lambda _: NativeMossProvider)
@@ -161,7 +167,7 @@ class AIOCapabilityTests(unittest.TestCase):
             result = model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler(
                 model, self.settings()["sampler"],
             )
-        find.assert_called_once_with("NativeMossSpectrumPatch")
+        find.assert_called_once_with("SpectrumMossModelPatch")
         self.assertEqual(result, ("native", model, 25, "conservative"))
         self.assertIs(model.model.model_sampling, sampling_before)
         with patch_comfy_helper(model_preparation, "_find_comfy_node_class", return_value=None):
@@ -174,6 +180,118 @@ class AIOCapabilityTests(unittest.TestCase):
         self.assertTrue(options["aio_capabilities"]["features"]["spectrum"]["supported"])
         self.assertNotIn("aio_capabilities", json.loads(options["default"]))
         self.assertFalse(json.loads(options["default"])["sampler"]["spectrum"]["enabled"])
+
+    def test_model_patch_resolution_prefers_canonical_and_preserves_legacy_provider(self):
+        for family, provider, canonical, legacy in (
+            ("moss_image", NativeMossProvider, "SpectrumMossModelPatch", "NativeMossSpectrumPatch"),
+            ("krea2", Krea2Provider, "SpectrumKrea2ModelPatch", "NativeKrea2SpectrumPatch"),
+        ):
+            with self.subTest(family=family):
+                lookup = Mock(side_effect={canonical: provider, legacy: object}.get)
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, lookup),
+                                 (canonical, provider, "available"))
+                lookup.assert_called_once_with(canonical)
+                for stage in capabilities.SAMPLING_STAGES:
+                    support = capabilities.aio_feature_support(family, "spectrum", stage, node_lookup=lookup)
+                    self.assertTrue(support["supported"])
+                    self.assertEqual(support["adapter"], canonical)
+                legacy_lookup = {legacy: provider}.get
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, legacy_lookup),
+                                 (legacy, provider, "available"))
+                self.assertEqual(capabilities.aio_feature_support(
+                    family, "spectrum", node_lookup=legacy_lookup,
+                )["adapter"], legacy)
+                incompatible = Mock(side_effect={canonical: object, legacy: provider}.get)
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, incompatible),
+                                 (canonical, None, "incompatible"))
+                incompatible.assert_called_once_with(canonical)
+        lookup = Mock()
+        self.assertEqual(capabilities.spectrum_model_patch_provider("future_model", lookup),
+                         ("", None, "unsupported"))
+        lookup.assert_not_called()
+
+    def test_krea2_model_patch_contract_enables_only_forecasting_and_advertised_stages(self):
+        settings = self.settings(model_family="krea2")
+        lookup = {"SpectrumKrea2ModelPatch": Krea2Provider}.get
+        model_profiles.validate_aio_model_settings(settings, node_lookup=lookup)
+        for feature in ("mod_guidance", "dit_corrections", "dave", "safe_pag"):
+            self.assertFalse(capabilities.aio_feature_support(
+                "krea2", feature, node_lookup=lookup,
+            )["supported"])
+        marker = {**Krea2Provider.SPECTRUM_CAPABILITIES, "stages": ["sampler"]}
+        with patch.object(Krea2Provider, "SPECTRUM_CAPABILITIES", marker):
+            for stage in ("highres", "detailer", "upscale"):
+                self.assertFalse(capabilities.aio_feature_support(
+                    "krea2", "spectrum", stage, node_lookup=lookup,
+                )["supported"])
+        marker["contract_version"] = 2
+        with patch.object(Krea2Provider, "SPECTRUM_CAPABILITIES", marker):
+            with self.assertRaisesRegex(ValueError, "krea2_model_patch_incompatible"):
+                model_profiles.validate_aio_model_settings(settings, node_lookup=lookup)
+
+    def test_both_model_patches_dispatch_stage_settings_without_changing_sampling(self):
+        for family, provider, canonical, legacy in (
+            ("moss_image", NativeMossProvider, "SpectrumMossModelPatch", "NativeMossSpectrumPatch"),
+            ("krea2", Krea2Provider, "SpectrumKrea2ModelPatch", "NativeKrea2SpectrumPatch"),
+        ):
+            for provider_id in (canonical, legacy):
+                model = SimpleNamespace(model=SimpleNamespace(
+                    model_config=SimpleNamespace(unet_config={"image_model": family}),
+                    model_sampling=object(),
+                ))
+                sampling_before = model.model.model_sampling
+                settings = self.settings(model_family=family)
+                stages = (settings["sampler"], settings["highres"], settings["detailer"]["face"], settings["upscale"])
+                for index, stage in enumerate(stages):
+                    with self.subTest(family=family, provider=provider_id, stage=index):
+                        stage["spectrum"]["enabled"] = True
+                        stage["steps"] = 8 + index
+                        before = copy.deepcopy(stage)
+                        with patch_comfy_helper(model_preparation, "_find_comfy_node_class",
+                                                side_effect={provider_id: provider}.get):
+                            result = model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler(model, stage)
+                        self.assertEqual(result, ("native", model, 8 + index, "conservative"))
+                        self.assertEqual(stage, before)
+                        self.assertIs(model.model.model_sampling, sampling_before)
+
+    def test_krea2_forecast_defaults_allow_turbo_window_without_overwriting_saved_values(self):
+        fresh = self.settings(model_family="krea2")
+        for stage in (fresh["sampler"], fresh["highres"], fresh["upscale"],
+                      fresh["detailer"]["face"], fresh["detailer"]["eye"]):
+            self.assertEqual([stage["spectrum"][key] for key in (
+                "warmup_steps", "tail_actual_steps", "cheby_degree", "history_size",
+            )], [3, 2, 1, 8])
+        saved = self.settings(model_family="krea2", sampler={"spectrum": {
+            "enabled": True, "warmup_steps": 6, "tail_actual_steps": 3,
+            "cheby_degree": 3, "history_size": 100,
+        }})
+        self.assertEqual(saved["sampler"]["spectrum"]["warmup_steps"], 6)
+        self.assertEqual(saved["sampler"]["spectrum"]["history_size"], 100)
+
+    def test_krea2_raw_schedule_cfg_and_custom_shift_are_preserved(self):
+        # Official RAW inference uses 52 steps / CFG 3.5. The shift below is a
+        # custom user value, not a claimed RAW recommendation.
+        settings = self.settings(
+            model_family="krea2",
+            sampler={"steps": 52, "cfg": 3.5, "spectrum": {
+                "enabled": True, "warmup_steps": 6, "tail_actual_steps": 3,
+                "cheby_degree": 3, "history_size": 100,
+            }},
+            model_patches={"aura_flow": {"shift": 2.3}},
+        )
+        original = copy.deepcopy(settings)
+        model_profiles.validate_aio_model_settings(settings, node_lookup={"SpectrumKrea2ModelPatch": Krea2Provider}.get)
+        self.assertEqual(settings, original)
+        self.assertEqual(settings["sampler"]["steps"], 52)
+        self.assertEqual(settings["sampler"]["cfg"], 3.5)
+        self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 2.3)
+        model = SimpleNamespace(model=SimpleNamespace(
+            model_config=SimpleNamespace(unet_config={"image_model": "krea2"}),
+            model_sampling=object(),
+        ))
+        with patch_comfy_helper(model_preparation, "_find_comfy_node_class", return_value=Krea2Provider):
+            result = model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler(model, settings["sampler"])
+        self.assertEqual(result, ("native", model, 52, "conservative"))
 
 
 class AIOModelProfileTests(unittest.TestCase):

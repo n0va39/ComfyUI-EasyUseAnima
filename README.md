@@ -46,7 +46,9 @@ The main workflow is:
 
 Separate `AiO Generator (MOSS)` and `AiO Generator (Krea2)` nodes share the Input,
 seed and saving architecture, including compatible Highres, Detailer, Upscale,
-Artist Mix and KJ options. See the [model-specific guide](docs/nodes/anima-aio-generator.en.md)
+Artist Mix and KJ options. Spectrum forecasting uses the optional model-specific
+Spectrum MODEL patches when their capability contracts are available.
+See the [model-specific guide](docs/nodes/anima-aio-generator.en.md)
 for optional dependencies and unsupported model patches.
 
 ## Demo Videos

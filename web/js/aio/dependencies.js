@@ -1,8 +1,14 @@
 // @ts-check
 
 export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
-  spectrumNativeMoss: {
-    nodeId: "NativeMossSpectrumPatch",
+  spectrumMossModelPatch: {
+    nodeId: "SpectrumMossModelPatch",
+    legacyNodeIds: ["NativeMossSpectrumPatch"],
+    pack: "ComfyUI-Spectrum-KSampler",
+  },
+  spectrumKrea2ModelPatch: {
+    nodeId: "SpectrumKrea2ModelPatch",
+    legacyNodeIds: ["NativeKrea2SpectrumPatch"],
     pack: "ComfyUI-Spectrum-KSampler",
   },
   spectrumAdvanced: {
@@ -88,7 +94,11 @@ export async function aioQueryOptionalDependencies(specs, queryNodeInfo) {
 
   for (const [key, spec] of Object.entries(specs || {})) {
     try {
-      const info = await queryNodeInfo(spec, key);
+      let info = await queryNodeInfo(spec, key);
+      for (const nodeId of spec.legacyNodeIds || []) {
+        if (info) break;
+        info = await queryNodeInfo({ ...spec, nodeId }, key);
+      }
       available[key] = !!info;
       status[key] = info ? "available" : "missing";
       nodeInfo[key] = info || null;

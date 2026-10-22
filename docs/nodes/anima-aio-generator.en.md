@@ -27,15 +27,36 @@ Torch Compile is available for Krea2. MOSS Torch Compile is disabled because
 the current native attention and quantized kernels fail compilation.
 MOSS NegPip requires native-MOSS-capable ComfyUI-ppm; both MODEL and CLIP must
 report successful patching. Krea2 NegPip remains unsupported.
-MOSS Spectrum forecasting supports first pass, Highres, Detailer and USDU
-sampling when a separately installed Spectrum provider exposes the compatible
-`NativeMossSpectrumPatch` contract and advertises those stages. Each crop or
-tile starts with fresh forecast state. Missing or older providers leave
-unsupported controls disabled and retain their saved values.
-This requires the native MOSS adapter; the separate-loader
-`MossSpectrumKSampler` does not satisfy the contract. The validated adapter is
-a separate development patch, not a claim of support in an upstream release.
-Krea2 Spectrum, Anima Mod Guidance, DAVE, Safe PAG, DiT corrections and the
+MOSS and Krea2 Spectrum forecasting supports first pass, Highres, Detailer and
+USDU sampling when the installed Spectrum provider advertises those stages.
+AiO calls the public `SpectrumMossModelPatch` / `SpectrumKrea2ModelPatch` nodes
+after checking their model, loader, contract version, features and inputs.
+The old `NativeMossSpectrumPatch` / `NativeKrea2SpectrumPatch` IDs remain fallback
+aliases when the canonical ID is absent. An incompatible canonical provider is
+not bypassed. No forecasting implementation is copied into AiO.
+
+These patches target ComfyUI's built-in model loaders; the separate-loader
+`MossSpectrumKSampler` does not satisfy the contract. Each crop or tile starts
+with fresh forecast state. Missing or incompatible providers disable unsupported
+controls while preserving saved values. The MOSS/common foundation is proposed
+in [Spectrum PR #11](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/pull/11);
+Krea2 is proposed separately in [Spectrum PR #12](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/pull/12).
+These are development integrations,
+not a claim that an upstream release already includes the patches.
+
+The Krea2 adapter targets the shared model architecture, including RAW and Turbo;
+it does not classify checkpoints by filename or force eight steps / CFG 1.
+The [official RAW example](https://huggingface.co/krea/Krea-2-Raw) uses 52 steps
+and CFG 3.5. Set sampler steps, CFG and flow shift for the checkpoint you use;
+Spectrum follows that actual schedule. Real-checkpoint validation currently
+covers Turbo INT8 only; RAW weights, output quality and speed are unverified.
+
+Krea2 forecasting is experimental. New Turbo settings use degree 1, history 8,
+three warmup and two final actual steps. Saved explicit values are preserved;
+older settings with six warmup and three tail steps may leave no forecasting
+window in an eight-step run. Compare quality with Spectrum disabled. Reference
+images, multi-frame inputs and unsupported head quantization use full computation.
+Anima Mod Guidance, DAVE, Safe PAG, DiT corrections and the
 Advanced/SPD sampler backends remain unavailable for MOSS/Krea2 as applicable.
 Forecast support does not enable those independent features. Existing Anima
 Spectrum support is preserved.

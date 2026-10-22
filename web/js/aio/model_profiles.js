@@ -13,9 +13,9 @@ const NATIVE_DIT_CAPABILITIES = {
 };
 
 export const AIO_GENERATOR_MODEL_PROFILES = {
-  EasyUseAnimaAIOGenerator: { family: "anima", label: "Anima", capabilities: ANIMA_CAPABILITIES },
-  EasyUseMossAIOGenerator: { family: "moss_image", label: "MOSS", capabilities: { ...NATIVE_DIT_CAPABILITIES, negpip: true, torchCompile: false } },
-  EasyUseKrea2AIOGenerator: { family: "krea2", label: "Krea2", capabilities: NATIVE_DIT_CAPABILITIES },
+  EasyUseAnimaAIOGenerator: { family: "anima", label: "Anima", spectrumDependencyKey: "spectrumPatch", capabilities: ANIMA_CAPABILITIES },
+  EasyUseMossAIOGenerator: { family: "moss_image", label: "MOSS", spectrumDependencyKey: "spectrumMossModelPatch", capabilities: { ...NATIVE_DIT_CAPABILITIES, negpip: true, torchCompile: false } },
+  EasyUseKrea2AIOGenerator: { family: "krea2", label: "Krea2", spectrumDependencyKey: "spectrumKrea2ModelPatch", capabilities: NATIVE_DIT_CAPABILITIES },
 };
 
 export const AIO_MODEL_CAPABILITY_SPECS = Object.fromEntries(

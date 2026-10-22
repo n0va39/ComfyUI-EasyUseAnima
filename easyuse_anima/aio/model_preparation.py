@@ -15,7 +15,7 @@ from ..infrastructure.comfy.invocation import (
 )
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..lora.prompt_syntax import _normalize_lora_stack as _normalize_aio_lora_stack
-from .capabilities import NATIVE_MOSS_SPECTRUM_NODE, native_moss_spectrum_provider
+from .capabilities import SPECTRUM_MODEL_PATCHES, spectrum_model_patch_provider
 from .generation_lifecycle import StageModelPatchPlan
 from .generation_migrations import (
     AIO_GENERATION_STAGE_IDS,
@@ -581,11 +581,10 @@ def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
         return model
     config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", {})
     family = config.get("image_model", "anima") if isinstance(config, dict) else "anima"
-    if family == "moss_image":
-        patch_cls, status = native_moss_spectrum_provider(_find_comfy_node_class)
-        node_id = NATIVE_MOSS_SPECTRUM_NODE
+    if family in SPECTRUM_MODEL_PATCHES:
+        node_id, patch_cls, status = spectrum_model_patch_provider(family, _find_comfy_node_class)
         if patch_cls is None:
-            raise RuntimeError(f"[EasyUseAnima] Native MOSS Spectrum adapter is {status}.")
+            raise RuntimeError(f"[EasyUseAnima] Spectrum Model Patch ({family}) is {status}: {node_id}.")
     elif family not in ("anima", None):
         raise ValueError(f"[EasyUseAnima] {family} Spectrum forecasting is not supported.")
     else:
@@ -624,7 +623,7 @@ def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
     )
     if not values:
         raise RuntimeError(f"[EasyUseAnima] {node_id} returned no MODEL.")
-    if family == "moss_image" and len(values) != 1:
+    if family in SPECTRUM_MODEL_PATCHES and len(values) != 1:
         raise RuntimeError(f"[EasyUseAnima] {node_id} must return exactly one MODEL.")
     return values[0]
 

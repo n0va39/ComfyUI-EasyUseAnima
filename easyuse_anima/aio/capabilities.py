@@ -24,12 +24,27 @@ _MODEL_FEATURES = {
 }
 
 NATIVE_MOSS_SPECTRUM_NODE = "NativeMossSpectrumPatch"
-NATIVE_MOSS_SPECTRUM_CONTRACT = {
+MOSS_SPECTRUM_CONTRACT = {
     "contract_version": 1,
     "model_family": "moss_image",
     "loader": "comfy_native",
     "features": ["forecast"],
     "stages": ["sampler"],
+}
+NATIVE_MOSS_SPECTRUM_CONTRACT = MOSS_SPECTRUM_CONTRACT
+# Only reviewed model adapters belong here. A new node name alone does not
+# enable another model or feature; its capability contract must also match.
+SPECTRUM_MODEL_PATCHES = {
+    "moss_image": {
+        "node_ids": ("SpectrumMossModelPatch", NATIVE_MOSS_SPECTRUM_NODE),
+        "contract": MOSS_SPECTRUM_CONTRACT,
+        "reason_prefix": "native_moss_adapter",  # Preserve existing API reason codes.
+    },
+    "krea2": {
+        "node_ids": ("SpectrumKrea2ModelPatch", "NativeKrea2SpectrumPatch"),
+        "contract": {**MOSS_SPECTRUM_CONTRACT, "model_family": "krea2"},
+        "reason_prefix": "krea2_model_patch",
+    },
 }
 SPECTRUM_PATCH_INPUTS = (
     "model", "steps", "window_size", "flex_window", "warmup_steps",
@@ -43,9 +58,34 @@ def _find_provider(node_id: str):
     return lookup(node_id)
 
 
+def spectrum_model_patch_provider(family: str, node_lookup=None):
+    """Return the selected node ID, validated MODEL patch, and availability.
+
+    Prefer the canonical ID. Only try a legacy ID when it is absent, never to
+    bypass an incompatible canonical provider.
+    """
+    spec = SPECTRUM_MODEL_PATCHES.get(family)
+    if spec is None:
+        return "", None, "unsupported"
+    lookup = node_lookup or _find_provider
+    node_id = spec["node_ids"][0]
+    node = None
+    for candidate in spec["node_ids"]:
+        node = lookup(candidate)
+        if node is not None:
+            node_id = candidate
+            break
+    provider, status = _validate_spectrum_model_patch(node, spec["contract"])
+    return node_id, provider, status
+
+
 def native_moss_spectrum_provider(node_lookup=None):
-    """Resolve only the implemented native adapter ABI, never the legacy sampler."""
-    node = (node_lookup or _find_provider)(NATIVE_MOSS_SPECTRUM_NODE)
+    """Compatibility entry point for callers of the original MOSS resolver."""
+    _, node, status = spectrum_model_patch_provider("moss_image", node_lookup)
+    return node, status
+
+
+def _validate_spectrum_model_patch(node, contract):
     if node is None:
         return None, "missing_dependency"
     if getattr(node, "RETURN_TYPES", None) != ("MODEL",) or getattr(node, "FUNCTION", None) != "patch":
@@ -53,14 +93,14 @@ def native_moss_spectrum_provider(node_lookup=None):
     marker = getattr(node, "SPECTRUM_CAPABILITIES", None)
     if not isinstance(marker, dict) or any(
         marker.get(key) != value
-        for key, value in NATIVE_MOSS_SPECTRUM_CONTRACT.items()
+        for key, value in contract.items()
         if key not in ("features", "stages")
     ):
         return None, "incompatible"
     for key in ("features", "stages"):
         values = marker.get(key)
         if not isinstance(values, (list, tuple)) or not all(
-            value in values for value in NATIVE_MOSS_SPECTRUM_CONTRACT[key]
+            value in values for value in contract[key]
         ):
             return None, "incompatible"
     patch = getattr(node, "patch", None)
@@ -90,8 +130,9 @@ def aio_feature_support(
         "adapter": "",
         "reason_code": "" if supported else "model_feature_unsupported",
     }
-    if family == "moss_image" and feature == "spectrum":
-        node, status = native_moss_spectrum_provider(node_lookup)
+    if family in SPECTRUM_MODEL_PATCHES and feature == "spectrum":
+        node_id, node, status = spectrum_model_patch_provider(family, node_lookup)
+        reason_prefix = SPECTRUM_MODEL_PATCHES[family]["reason_prefix"]
         stages = [
             name for name in SAMPLING_STAGES
             if node is not None and name in node.SPECTRUM_CAPABILITIES["stages"]
@@ -102,12 +143,12 @@ def aio_feature_support(
             status="unsupported" if status == "available" and not supported else status,
             stages=stages,
             provider="ComfyUI-Spectrum-KSampler",
-            adapter=NATIVE_MOSS_SPECTRUM_NODE,
+            adapter=node_id,
             reason_code=(
                 "" if supported else
                 "stage_not_supported" if status == "available" else
-                "native_moss_adapter_missing" if status == "missing_dependency" else
-                "native_moss_adapter_incompatible"
+                f"{reason_prefix}_missing" if status == "missing_dependency" else
+                f"{reason_prefix}_incompatible"
             ),
         )
     return result

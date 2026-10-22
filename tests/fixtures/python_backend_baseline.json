@@ -9689,15 +9689,15 @@
       },
       {
         "alias": null,
-        "bound_name": "NATIVE_MOSS_SPECTRUM_NODE",
+        "bound_name": "SPECTRUM_MODEL_PATCHES",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".capabilities:NATIVE_MOSS_SPECTRUM_NODE",
+        "imported": ".capabilities:SPECTRUM_MODEL_PATCHES",
         "kind": "static_from",
         "line": 18,
-        "name": "NATIVE_MOSS_SPECTRUM_NODE",
+        "name": "SPECTRUM_MODEL_PATCHES",
         "optional": false,
         "requested": ".capabilities",
         "role": "ordinary",
@@ -9707,15 +9707,15 @@
       },
       {
         "alias": null,
-        "bound_name": "native_moss_spectrum_provider",
+        "bound_name": "spectrum_model_patch_provider",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".capabilities:native_moss_spectrum_provider",
+        "imported": ".capabilities:spectrum_model_patch_provider",
         "kind": "static_from",
         "line": 18,
-        "name": "native_moss_spectrum_provider",
+        "name": "spectrum_model_patch_provider",
         "optional": false,
         "requested": ".capabilities",
         "role": "ordinary",
@@ -50655,46 +50655,62 @@
         "functions": [
           {
             "async": false,
-            "end_line": 43,
+            "end_line": 58,
             "kind": "function",
-            "line": 41,
+            "line": 56,
             "loc": 3,
             "qualified_name": "_find_provider"
           },
           {
             "async": false,
-            "end_line": 77,
+            "end_line": 79,
             "kind": "function",
-            "line": 46,
-            "loc": 32,
+            "line": 61,
+            "loc": 19,
+            "qualified_name": "spectrum_model_patch_provider"
+          },
+          {
+            "async": false,
+            "end_line": 85,
+            "kind": "function",
+            "line": 82,
+            "loc": 4,
             "qualified_name": "native_moss_spectrum_provider"
           },
           {
             "async": false,
-            "end_line": 113,
+            "end_line": 117,
             "kind": "function",
-            "line": 80,
-            "loc": 34,
+            "line": 88,
+            "loc": 30,
+            "qualified_name": "_validate_spectrum_model_patch"
+          },
+          {
+            "async": false,
+            "end_line": 154,
+            "kind": "function",
+            "line": 120,
+            "loc": 35,
             "qualified_name": "aio_feature_support"
           },
           {
             "async": false,
-            "end_line": 124,
+            "end_line": 165,
             "kind": "function",
-            "line": 116,
+            "line": 157,
             "loc": 9,
             "qualified_name": "aio_capability_manifest"
           }
         ],
         "is_package": false,
-        "loc": 127,
+        "loc": 168,
         "module": "easyuse_anima.aio.capabilities",
-        "normalized_git_blob_sha1": "78974c528a8e7039e506d2241ceee3aaa0278046",
+        "normalized_git_blob_sha1": "01bb41a7e67dc04b13f70a52b96a778e7ce6702d",
         "path": "easyuse_anima/aio/capabilities.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 4,
-          "global_count": 9
+          "function_count": 6,
+          "global_count": 11
         }
       },
       {
@@ -53630,25 +53646,25 @@
           },
           {
             "async": false,
-            "end_line": 629,
+            "end_line": 628,
             "kind": "function",
             "line": 573,
-            "loc": 57,
+            "loc": 56,
             "qualified_name": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 647,
+            "end_line": 646,
             "kind": "function",
-            "line": 632,
+            "line": 631,
             "loc": 16,
             "qualified_name": "_apply_aio_spectrum_model_patches_for_comfy_sampler"
           }
         ],
         "is_package": false,
-        "loc": 650,
+        "loc": 649,
         "module": "easyuse_anima.aio.model_preparation",
-        "normalized_git_blob_sha1": "27323765f7d875a0344295adce3f75a644e7dd79",
+        "normalized_git_blob_sha1": "254d4a6d790d6ee6c10ce951be1b72bcb8645fc7",
         "path": "easyuse_anima/aio/model_preparation.py",
         "top_level": {
           "class_count": 0,
@@ -53668,41 +53684,41 @@
           },
           {
             "async": false,
-            "end_line": 79,
+            "end_line": 88,
             "kind": "function",
             "line": 57,
-            "loc": 23,
+            "loc": 32,
             "qualified_name": "aio_model_defaults"
           },
           {
             "async": false,
-            "end_line": 140,
+            "end_line": 149,
             "kind": "function",
-            "line": 82,
+            "line": 91,
             "loc": 59,
             "qualified_name": "validate_aio_model_settings"
           },
           {
             "async": false,
-            "end_line": 160,
+            "end_line": 169,
             "kind": "function",
-            "line": 143,
+            "line": 152,
             "loc": 18,
             "qualified_name": "validate_aio_model_resources"
           },
           {
             "async": false,
-            "end_line": 167,
+            "end_line": 176,
             "kind": "function",
-            "line": 163,
+            "line": 172,
             "loc": 5,
             "qualified_name": "validate_aio_model_dimensions"
           }
         ],
         "is_package": false,
-        "loc": 170,
+        "loc": 179,
         "module": "easyuse_anima.aio.model_profiles",
-        "normalized_git_blob_sha1": "b3c8bae1054d3a72ae99f5d3eb5ab2e73d99c5bb",
+        "normalized_git_blob_sha1": "5b5de55abfd586a50bea30f486e8b0f566217c8e",
         "path": "easyuse_anima/aio/model_profiles.py",
         "top_level": {
           "class_count": 1,
@@ -82086,7 +82102,13 @@
         "kind": "dict",
         "line": 27,
         "module": "easyuse_anima/aio/capabilities.py",
-        "name": "NATIVE_MOSS_SPECTRUM_CONTRACT"
+        "name": "MOSS_SPECTRUM_CONTRACT"
+      },
+      {
+        "kind": "dict",
+        "line": 37,
+        "module": "easyuse_anima/aio/capabilities.py",
+        "name": "SPECTRUM_MODEL_PATCHES"
       },
       {
         "kind": "dict",

@@ -113,8 +113,10 @@ Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.
 
 `AiO Generator (MOSS)`와 `AiO Generator (Krea2)`는 모델별로 분리된 노드이며
 같은 Input 소켓과 공통 설정·시드·저장 구조를 사용합니다. Highres·Detailer·Upscale,
-Artist Mix, 일반 hook과 KJ 실행 옵션을 지원합니다. Anima 전용 패치와 Spectrum은
-제외되며 MOSS NegPip은 최신 ComfyUI-ppm이 필요합니다. Krea2 기본값은 Turbo용입니다. 필요한 인코더·VAE와 모델별
+Artist Mix, 일반 hook과 KJ 실행 옵션을 지원합니다. Spectrum 예측 가속에는 호환되는
+`Spectrum Model Patch (MOSS)` 또는 `Spectrum Model Patch (Krea2)` 제공자가 필요합니다.
+Anima 전용 패치는 제외되며 MOSS NegPip은 최신 ComfyUI-ppm이 필요합니다.
+Krea2 기본값은 Turbo용입니다. 필요한 인코더·VAE와 모델별
 기본값은 위 생성 노드 문서에서 확인할 수 있습니다.
 
 배포용 간단 워크플로우:

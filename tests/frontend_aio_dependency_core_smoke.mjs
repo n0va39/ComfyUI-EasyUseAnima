@@ -155,6 +155,29 @@ assert(
   "Dependency queries must not mutate their specs",
 );
 
+for (const key of ["spectrumMossModelPatch", "spectrumKrea2ModelPatch"]) {
+  const spec = AIO_OPTIONAL_DEPENDENCY_SPECS[key];
+  const before = JSON.stringify(spec);
+  for (const installed of [spec.nodeId, spec.legacyNodeIds[0], null]) {
+    const calls = [];
+    const result = await aioQueryOptionalDependencies({ [key]: spec }, async (candidate) => {
+      calls.push(candidate.nodeId);
+      return candidate.nodeId === installed ? presentInfo : null;
+    });
+    assert(result.available[key] === !!installed, "Canonical and legacy patches must both resolve");
+    assert(JSON.stringify(calls) === JSON.stringify(installed === spec.nodeId
+      ? [spec.nodeId] : [spec.nodeId, ...spec.legacyNodeIds]), "Canonical IDs have priority; only missing nodes try aliases");
+    assert(result.nodeInfo[key] === (installed ? presentInfo : null), "Input metadata comes from the selected provider");
+  }
+  const calls = [];
+  const failed = await aioQueryOptionalDependencies({ [key]: spec }, async (candidate) => {
+    calls.push(candidate.nodeId);
+    throw new Error("network failed");
+  });
+  assert(failed.status[key] === "error" && calls.length === 1, "Network failures must not masquerade as a missing canonical provider");
+  assert(JSON.stringify(spec) === before, "Legacy discovery never mutates dependency definitions");
+}
+
 const capabilityState = {
   loaded: true,
   status: {
