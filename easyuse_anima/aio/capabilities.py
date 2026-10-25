@@ -33,25 +33,30 @@ MOSS_SPECTRUM_CONTRACT = {
     "stages": ["sampler"],
 }
 NATIVE_MOSS_SPECTRUM_CONTRACT = MOSS_SPECTRUM_CONTRACT
-# Only reviewed model adapters belong here. A new node name alone does not
-# enable another model or feature; its capability contract must also match.
+# AiO owns the reviewed model/stage mapping. Canonical providers need only the
+# public MODEL patch contract; older providers may further restrict its stages.
 SPECTRUM_MODEL_PATCHES = {
     "moss_image": {
         "node_ids": ("SpectrumMossModelPatch", NATIVE_MOSS_SPECTRUM_NODE),
         "contract": MOSS_SPECTRUM_CONTRACT,
+        "stages": SAMPLING_STAGES,
         "reason_prefix": "native_moss_adapter",  # Preserve existing API reason codes.
     },
     "krea2": {
         "node_ids": ("SpectrumKrea2ModelPatch", "NativeKrea2SpectrumPatch"),
         "contract": {**MOSS_SPECTRUM_CONTRACT, "model_family": "krea2"},
+        "stages": SAMPLING_STAGES,
         "reason_prefix": "krea2_model_patch",
     },
 }
-SPECTRUM_PATCH_INPUTS = (
-    "model", "steps", "window_size", "flex_window", "warmup_steps",
-    "tail_actual_steps", "blend_w", "cheby_degree", "ridge_lambda",
-    "history_size", "enabled", "one_sampler_only", "verbose", "compat_policy",
-)
+_SPECTRUM_PATCH_INPUT_TYPES = {
+    "model": "MODEL", "steps": "INT", "window_size": "FLOAT", "flex_window": "FLOAT",
+    "warmup_steps": "INT", "tail_actual_steps": "INT", "blend_w": "FLOAT",
+    "cheby_degree": "INT", "ridge_lambda": "FLOAT", "history_size": "INT",
+    "enabled": "BOOLEAN", "one_sampler_only": "BOOLEAN", "verbose": "BOOLEAN",
+    "compat_policy": ("legacy", "conservative", "strict"),
+}
+SPECTRUM_PATCH_INPUTS = tuple(_SPECTRUM_PATCH_INPUT_TYPES)
 
 
 def _find_provider(node_id: str):
@@ -76,7 +81,9 @@ def spectrum_model_patch_provider(family: str, node_lookup=None):
         if node is not None:
             node_id = candidate
             break
-    provider, status = _validate_spectrum_model_patch(node, spec["contract"])
+    provider, status = _validate_spectrum_model_patch(
+        node, spec["contract"], require_marker=node_id != spec["node_ids"][0],
+    )
     return node_id, provider, status
 
 
@@ -86,34 +93,72 @@ def native_moss_spectrum_provider(node_lookup=None):
     return node, status
 
 
-def _validate_spectrum_model_patch(node, contract):
-    if node is None:
-        return None, "missing_dependency"
-    if getattr(node, "RETURN_TYPES", None) != ("MODEL",) or getattr(node, "FUNCTION", None) != "patch":
-        return None, "incompatible"
-    marker = getattr(node, "SPECTRUM_CAPABILITIES", None)
+def _spectrum_patch_inputs(node):
+    inputs = node.INPUT_TYPES()
+    return {**inputs.get("required", {}), **inputs.get("optional", {})}
+
+
+def _spectrum_patch_markers(node, inputs):
+    markers = []
+    if hasattr(node, "SPECTRUM_CAPABILITIES"):
+        markers.append(node.SPECTRUM_CAPABILITIES)
+    model_spec = inputs["model"]
+    if len(model_spec) > 1 and isinstance(model_spec[1], dict):
+        if "spectrum_capabilities" in model_spec[1]:
+            markers.append(model_spec[1]["spectrum_capabilities"])
+    return markers
+
+
+def _spectrum_marker_matches(marker, contract):
     if not isinstance(marker, dict) or any(
         marker.get(key) != value
         for key, value in contract.items()
         if key not in ("features", "stages")
     ):
+        return False
+    return all(
+        isinstance(marker.get(key), (list, tuple))
+        and all(value in marker[key] for value in contract[key])
+        for key in ("features", "stages")
+    )
+
+
+def _validate_spectrum_model_patch(node, contract, *, require_marker=False):
+    if node is None:
+        return None, "missing_dependency"
+    if getattr(node, "RETURN_TYPES", None) != ("MODEL",) or getattr(node, "FUNCTION", None) != "patch":
         return None, "incompatible"
-    for key in ("features", "stages"):
-        values = marker.get(key)
-        if not isinstance(values, (list, tuple)) or not all(
-            value in values for value in contract[key]
-        ):
-            return None, "incompatible"
     patch = getattr(node, "patch", None)
     if not callable(patch):
         return None, "incompatible"
     try:
+        inputs = _spectrum_patch_inputs(node)
+        for name, expected in _SPECTRUM_PATCH_INPUT_TYPES.items():
+            field = inputs[name]
+            if not isinstance(field, (list, tuple)) or not field:
+                return None, "incompatible"
+            actual = field[0]
+            if isinstance(expected, tuple):
+                if not isinstance(actual, (list, tuple)) or not all(value in actual for value in expected):
+                    return None, "incompatible"
+            elif actual != expected:
+                return None, "incompatible"
+        markers = _spectrum_patch_markers(node, inputs)
+        if require_marker and not hasattr(node, "SPECTRUM_CAPABILITIES"):
+            return None, "incompatible"
+        if any(not _spectrum_marker_matches(marker, contract) for marker in markers):
+            return None, "incompatible"
         signature = inspect.signature(patch)
         # Explicit inputs are required: **kwargs alone is not an ABI guarantee.
-        if not all(name in signature.parameters for name in SPECTRUM_PATCH_INPUTS):
+        if not all(
+            name in signature.parameters and signature.parameters[name].kind in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY,
+            )
+            for name in SPECTRUM_PATCH_INPUTS
+        ):
             return None, "incompatible"
         signature.bind(None, **dict.fromkeys(SPECTRUM_PATCH_INPUTS))
-    except (TypeError, ValueError):
+    except (AttributeError, KeyError, TypeError, ValueError):
         return None, "incompatible"
     return node, "available"
 
@@ -144,10 +189,12 @@ def aio_feature_support(
         )
     if family in SPECTRUM_MODEL_PATCHES and feature == "spectrum":
         node_id, node, status = spectrum_model_patch_provider(family, node_lookup)
-        reason_prefix = SPECTRUM_MODEL_PATCHES[family]["reason_prefix"]
+        spec = SPECTRUM_MODEL_PATCHES[family]
+        reason_prefix = spec["reason_prefix"]
+        markers = _spectrum_patch_markers(node, _spectrum_patch_inputs(node)) if node is not None else []
         stages = [
-            name for name in SAMPLING_STAGES
-            if node is not None and name in node.SPECTRUM_CAPABILITIES["stages"]
+            name for name in spec["stages"]
+            if node is not None and all(name in marker["stages"] for marker in markers)
         ]
         supported = status == "available" and stage in stages
         result.update(

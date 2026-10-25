@@ -50,7 +50,9 @@ the pre-encoding floating-point IMAGE tensor. Earlier Highres/Detailer/USDU
 evidence remains valid for the unchanged secondary-stage pipeline.
 
 The public Krea2 AiO path also completed with Turbo INT8, KJ Inductor, default
-compile mode, dynamic shapes set to `auto`, and dynamic VRAM left enabled.
+compile mode, dynamic shapes set to `auto`, and the provider's
+`disable_dynamic_vram` setting left false. The isolated server itself used
+`--disable-dynamic-vram`; this run does not establish dynamic-VRAM compatibility.
 Its eight-step 512x512 run recorded 6 actual / 2 forecast / 0 fallback calls,
 preserved the selected provider/settings and produced a finite raw latent and
 an inspected image. Earlier standalone provider evidence covers a second

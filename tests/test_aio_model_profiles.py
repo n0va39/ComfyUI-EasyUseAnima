@@ -16,13 +16,19 @@ from easyuse_anima.nodes.aio_nodes import (
 )
 
 
-class NativeMossProvider:
-    SPECTRUM_CAPABILITIES = {
-        **capabilities.NATIVE_MOSS_SPECTRUM_CONTRACT,
-        "stages": list(capabilities.SAMPLING_STAGES),
-    }
+class PublicSpectrumProvider:
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "patch"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "model": ("MODEL",), "steps": ("INT",), "window_size": ("FLOAT",),
+            "flex_window": ("FLOAT",), "warmup_steps": ("INT",), "tail_actual_steps": ("INT",),
+            "blend_w": ("FLOAT",), "cheby_degree": ("INT",), "ridge_lambda": ("FLOAT",),
+            "history_size": ("INT",), "enabled": ("BOOLEAN",), "one_sampler_only": ("BOOLEAN",),
+            "verbose": ("BOOLEAN",), "compat_policy": (["legacy", "conservative", "strict"],),
+        }}
 
     def patch(
         self, model, steps, window_size, flex_window, warmup_steps,
@@ -30,6 +36,13 @@ class NativeMossProvider:
         enabled, one_sampler_only, verbose, compat_policy,
     ):
         return (("native", model, steps, compat_policy),)
+
+
+class NativeMossProvider(PublicSpectrumProvider):
+    SPECTRUM_CAPABILITIES = {
+        **capabilities.NATIVE_MOSS_SPECTRUM_CONTRACT,
+        "stages": list(capabilities.SAMPLING_STAGES),
+    }
 
 
 class Krea2Provider(NativeMossProvider):
@@ -54,6 +67,103 @@ class AIOCapabilityTests(unittest.TestCase):
         marker = dict(NativeMossProvider.SPECTRUM_CAPABILITIES, contract_version=2)
         with patch.object(NativeMossProvider, "SPECTRUM_CAPABILITIES", marker):
             self.assertIsNone(capabilities.native_moss_spectrum_provider(lambda _: NativeMossProvider)[0])
+
+    def test_canonical_public_contract_needs_no_custom_metadata(self):
+        for family, canonical in (
+            ("moss_image", "SpectrumMossModelPatch"), ("krea2", "SpectrumKrea2ModelPatch"),
+        ):
+            with self.subTest(family=family):
+                lookup = {canonical: PublicSpectrumProvider}.get
+                self.assertFalse(hasattr(PublicSpectrumProvider, "SPECTRUM_CAPABILITIES"))
+                self.assertEqual(PublicSpectrumProvider.INPUT_TYPES()["required"]["model"], ("MODEL",))
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, lookup),
+                                 (canonical, PublicSpectrumProvider, "available"))
+                for stage in capabilities.SAMPLING_STAGES:
+                    support = capabilities.aio_feature_support(family, "spectrum", stage, node_lookup=lookup)
+                    self.assertTrue(support["supported"])
+                    self.assertEqual(support["stages"], list(capabilities.SAMPLING_STAGES))
+                    self.assertEqual(support["reason_code"], "")
+                manifest = capabilities.aio_capability_manifest(family, node_lookup=lookup)
+                self.assertEqual(manifest["contract_version"], 1)
+                self.assertFalse(manifest["features"]["mod_guidance"]["supported"])
+                settings = self.settings(model_family=family)
+                original = copy.deepcopy(settings)
+                model_profiles.validate_aio_model_settings(settings, node_lookup=lookup)
+                self.assertEqual(settings, original)
+
+    def test_canonical_requires_reviewed_public_inputs_and_explicit_patch_signature(self):
+        original = PublicSpectrumProvider.INPUT_TYPES()
+        for missing in capabilities.SPECTRUM_PATCH_INPUTS:
+            invalid = copy.deepcopy(original)
+            del invalid["required"][missing]
+            with self.subTest(missing=missing), patch.object(PublicSpectrumProvider, "INPUT_TYPES", return_value=invalid):
+                self.assertEqual(capabilities.spectrum_model_patch_provider(
+                    "moss_image", {"SpectrumMossModelPatch": PublicSpectrumProvider}.get,
+                ), ("SpectrumMossModelPatch", None, "incompatible"))
+        for name, field in (
+            ("model", ("IMAGE",)), ("steps", ("FLOAT",)), ("enabled", ("STRING",)),
+            ("compat_policy", (["conservative"],)), ("model", "MODEL"), ("model", ()),
+        ):
+            invalid = copy.deepcopy(original)
+            invalid["required"][name] = field
+            with self.subTest(name=name, field=field), patch.object(PublicSpectrumProvider, "INPUT_TYPES", return_value=invalid):
+                support = capabilities.aio_feature_support(
+                    "moss_image", "spectrum", node_lookup={"SpectrumMossModelPatch": PublicSpectrumProvider}.get,
+                )
+                self.assertEqual(support["reason_code"], "native_moss_adapter_incompatible")
+        for name, value in (
+            ("FUNCTION", "sample"), ("RETURN_TYPES", ("IMAGE",)),
+            ("patch", lambda self, **kwargs: None), ("INPUT_TYPES", None),
+        ):
+            with self.subTest(attribute=name), patch.object(PublicSpectrumProvider, name, value):
+                self.assertEqual(capabilities.spectrum_model_patch_provider(
+                    "krea2", {"SpectrumKrea2ModelPatch": PublicSpectrumProvider}.get,
+                ), ("SpectrumKrea2ModelPatch", None, "incompatible"))
+
+    def test_legacy_ids_still_require_marker_and_do_not_bypass_incompatible_canonical(self):
+        for family, legacy_provider, canonical, legacy in (
+            ("moss_image", NativeMossProvider, "SpectrumMossModelPatch", "NativeMossSpectrumPatch"),
+            ("krea2", Krea2Provider, "SpectrumKrea2ModelPatch", "NativeKrea2SpectrumPatch"),
+        ):
+            with self.subTest(family=family):
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, {legacy: PublicSpectrumProvider}.get),
+                                 (legacy, None, "incompatible"))
+                invalid = PublicSpectrumProvider.INPUT_TYPES()
+                invalid["required"]["model"] = ("LATENT",)
+                class BrokenCanonical(PublicSpectrumProvider):
+                    @classmethod
+                    def INPUT_TYPES(cls):
+                        return invalid
+                lookup = Mock(side_effect={canonical: BrokenCanonical, legacy: legacy_provider}.get)
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, lookup),
+                                 (canonical, None, "incompatible"))
+                lookup.assert_called_once_with(canonical)
+
+    def test_optional_legacy_input_metadata_keeps_stage_and_contract_restrictions(self):
+        for family, canonical in (
+            ("moss_image", "SpectrumMossModelPatch"), ("krea2", "SpectrumKrea2ModelPatch"),
+        ):
+            marker = {**capabilities.MOSS_SPECTRUM_CONTRACT, "model_family": family}
+            old_inputs = PublicSpectrumProvider.INPUT_TYPES()
+            old_inputs["required"]["model"] = ("MODEL", {"spectrum_capabilities": marker})
+            lookup = {canonical: PublicSpectrumProvider}.get
+            with patch.object(PublicSpectrumProvider, "INPUT_TYPES", return_value=old_inputs):
+                self.assertTrue(capabilities.aio_feature_support(family, "spectrum", node_lookup=lookup)["supported"])
+                for stage in ("highres", "detailer", "upscale"):
+                    support = capabilities.aio_feature_support(family, "spectrum", stage, node_lookup=lookup)
+                    self.assertEqual(support["stages"], ["sampler"])
+                    self.assertEqual(support["reason_code"], "stage_not_supported")
+                marker["contract_version"] = 2
+                self.assertEqual(capabilities.spectrum_model_patch_provider(family, lookup),
+                                 (canonical, None, "incompatible"))
+        restricted = PublicSpectrumProvider.INPUT_TYPES()
+        restricted["required"]["model"] = ("MODEL", {
+            "spectrum_capabilities": capabilities.NATIVE_MOSS_SPECTRUM_CONTRACT,
+        })
+        with patch.object(NativeMossProvider, "INPUT_TYPES", return_value=restricted):
+            self.assertEqual(capabilities.aio_feature_support(
+                "moss_image", "spectrum", node_lookup=lambda _: NativeMossProvider,
+            )["stages"], ["sampler"])
 
     def test_provider_requires_native_loader_forecast_stage_and_explicit_inputs(self):
         for field, value in (
@@ -231,10 +341,12 @@ class AIOCapabilityTests(unittest.TestCase):
 
     def test_both_model_patches_dispatch_stage_settings_without_changing_sampling(self):
         for family, provider, canonical, legacy in (
+            ("moss_image", PublicSpectrumProvider, "SpectrumMossModelPatch", "SpectrumMossModelPatch"),
+            ("krea2", PublicSpectrumProvider, "SpectrumKrea2ModelPatch", "SpectrumKrea2ModelPatch"),
             ("moss_image", NativeMossProvider, "SpectrumMossModelPatch", "NativeMossSpectrumPatch"),
             ("krea2", Krea2Provider, "SpectrumKrea2ModelPatch", "NativeKrea2SpectrumPatch"),
         ):
-            for provider_id in (canonical, legacy):
+            for provider_id in dict.fromkeys((canonical, legacy)):
                 model = SimpleNamespace(model=SimpleNamespace(
                     model_config=SimpleNamespace(unet_config={"image_model": family}),
                     model_sampling=object(),

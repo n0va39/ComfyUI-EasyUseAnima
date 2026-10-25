@@ -33,12 +33,17 @@ New DAVE settings use the auto mask, strength 0.3 and tau 0.06; saved values sur
 MOSS NegPip requires native-MOSS-capable ComfyUI-ppm; both MODEL and CLIP must
 report successful patching. Krea2 NegPip remains unsupported.
 MOSS and Krea2 Spectrum forecasting supports first pass, Highres, Detailer and
-USDU sampling when the installed Spectrum provider advertises those stages.
+USDU sampling through the reviewed public Spectrum model patches.
 AiO calls the public `SpectrumMossModelPatch` / `SpectrumKrea2ModelPatch` nodes
-after checking their model, loader, contract version, features and inputs.
+after checking their public inputs, MODEL output and explicit `patch` signature.
+Custom Spectrum capability metadata is not required. AiO owns the reviewed
+model/stage mapping; older providers' metadata still restricts their supported
+stages and incompatible declarations are rejected.
 The old `NativeMossSpectrumPatch` / `NativeKrea2SpectrumPatch` IDs remain fallback
-aliases when the canonical ID is absent. An incompatible canonical provider is
-not bypassed. No forecasting implementation is copied into AiO.
+IDs for beta/fork installations when the canonical ID is absent; they still
+require their legacy capability marker. An incompatible canonical provider is
+not bypassed. No forecasting implementation is copied into AiO. The public
+patch keeps its `steps` input, but uses the sampler's actual sigma schedule.
 
 These patches target ComfyUI's built-in model loaders; the separate-loader
 `MossSpectrumKSampler` does not satisfy the contract. Each crop or tile starts

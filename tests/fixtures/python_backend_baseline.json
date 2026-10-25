@@ -51233,62 +51233,86 @@
         "functions": [
           {
             "async": false,
-            "end_line": 59,
+            "end_line": 64,
             "kind": "function",
-            "line": 57,
+            "line": 62,
             "loc": 3,
             "qualified_name": "_find_provider"
           },
           {
             "async": false,
-            "end_line": 80,
+            "end_line": 87,
             "kind": "function",
-            "line": 62,
-            "loc": 19,
+            "line": 67,
+            "loc": 21,
             "qualified_name": "spectrum_model_patch_provider"
           },
           {
             "async": false,
-            "end_line": 86,
+            "end_line": 93,
             "kind": "function",
-            "line": 83,
+            "line": 90,
             "loc": 4,
             "qualified_name": "native_moss_spectrum_provider"
           },
           {
             "async": false,
-            "end_line": 118,
+            "end_line": 98,
             "kind": "function",
-            "line": 89,
-            "loc": 30,
+            "line": 96,
+            "loc": 3,
+            "qualified_name": "_spectrum_patch_inputs"
+          },
+          {
+            "async": false,
+            "end_line": 109,
+            "kind": "function",
+            "line": 101,
+            "loc": 9,
+            "qualified_name": "_spectrum_patch_markers"
+          },
+          {
+            "async": false,
+            "end_line": 123,
+            "kind": "function",
+            "line": 112,
+            "loc": 12,
+            "qualified_name": "_spectrum_marker_matches"
+          },
+          {
+            "async": false,
+            "end_line": 163,
+            "kind": "function",
+            "line": 126,
+            "loc": 38,
             "qualified_name": "_validate_spectrum_model_patch"
           },
           {
             "async": false,
-            "end_line": 166,
+            "end_line": 213,
             "kind": "function",
-            "line": 121,
-            "loc": 46,
+            "line": 166,
+            "loc": 48,
             "qualified_name": "aio_feature_support"
           },
           {
             "async": false,
-            "end_line": 178,
+            "end_line": 225,
             "kind": "function",
-            "line": 169,
+            "line": 216,
             "loc": 10,
             "qualified_name": "aio_capability_manifest"
           }
         ],
         "is_package": false,
-        "loc": 181,
+        "loc": 228,
         "module": "easyuse_anima.aio.capabilities",
-        "normalized_git_blob_sha1": "e5a81d11c7e105a765f2e7c78d6567baad1dd091",
+        "normalized_git_blob_sha1": "e4f056b90d43c00935272cb84eec588f99bc10e9",
         "path": "easyuse_anima/aio/capabilities.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 6,
-          "global_count": 11
+          "function_count": 9,
+          "global_count": 12
         }
       },
       {
@@ -79876,6 +79900,15 @@
         "scope": "<module>"
       },
       {
+        "callee": "tuple",
+        "column": 24,
+        "context": "assign:SPECTRUM_PATCH_INPUTS",
+        "kind": "import_time_call",
+        "line": 59,
+        "module": "easyuse_anima/aio/capabilities.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "re.compile",
         "column": 28,
         "context": "assign:_VERSIONED_CIVITAI_AIR_RE",
@@ -82935,6 +82968,12 @@
         "line": 21,
         "module": "easyuse_anima/aio/capabilities.py",
         "name": "_MODEL_FEATURES"
+      },
+      {
+        "kind": "dict",
+        "line": 52,
+        "module": "easyuse_anima/aio/capabilities.py",
+        "name": "_SPECTRUM_PATCH_INPUT_TYPES"
       },
       {
         "kind": "dict",

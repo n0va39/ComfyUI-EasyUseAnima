@@ -30,13 +30,17 @@ Inductor 컴파일에 실패한 사례가 있습니다. 설치 가능 여부와 
 새 DAVE 기본값은 auto 마스크·strength 0.3·tau 0.06이며 기존 명시값은 보존합니다.
 MOSS NegPip은 네이티브 MOSS를 지원하는 ComfyUI-ppm이 필요하며, 실제 MODEL·CLIP
 패치가 적용됐는지 확인합니다. Krea2 NegPip은 아직 지원하지 않습니다.
-MOSS와 Krea2의 Spectrum 예측 가속은 설치된 제공자가 해당 단계를 지원할 때
-최초 생성·Highres·Detailer·USDU 샘플링에서 사용할 수 있습니다. AiO는 모델,
-로더, 계약 버전, 기능과 입력을 확인한 뒤 공개 노드인 `SpectrumMossModelPatch` /
-`SpectrumKrea2ModelPatch`를 호출합니다. 정식 ID가 없을 때는 기존
-`NativeMossSpectrumPatch` / `NativeKrea2SpectrumPatch` 별칭을 사용합니다.
-정식 제공자가 호환되지 않으면 이전 별칭으로 우회하지 않습니다. 예측 구현은
-Spectrum이 소유하며 AiO에 복제하지 않습니다.
+MOSS와 Krea2의 Spectrum 예측 가속은 검토된 공개 모델 패치를 통해
+최초 생성·Highres·Detailer·USDU 샘플링에서 사용할 수 있습니다. AiO는 공개
+입력, MODEL 출력과 명시적인 `patch` 인자를 확인한 뒤 `SpectrumMossModelPatch` /
+`SpectrumKrea2ModelPatch`를 호출합니다. Spectrum의 별도 capability 메타데이터는
+필요하지 않으며 지원 모델·단계는 AiO가 관리합니다. 기존 제공자의 메타데이터가
+있으면 선언한 단계 제한을 유지하고 호환되지 않는 선언은 거부합니다.
+정식 ID가 없을 때는 베타·포크의 기존 `NativeMossSpectrumPatch` /
+`NativeKrea2SpectrumPatch` ID를 사용하며, 이 경우 기존 capability 마커가 필요합니다.
+정식 제공자가 호환되지 않으면 이전 ID로 우회하지 않습니다. 예측 구현은
+Spectrum이 소유하며 AiO에 복제하지 않습니다. 공개 패치는 `steps` 입력을 유지하지만
+실제 샘플러의 시그마 스케줄을 사용합니다.
 
 두 패치는 ComfyUI 기본 로더용입니다. 별도 로더용 `MossSpectrumKSampler`만으로는
 이 계약을 충족하지 않습니다. 각 crop·tile은 새 예측 상태로 시작하며, 제공자가
