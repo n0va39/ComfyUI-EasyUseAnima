@@ -81,6 +81,7 @@ const advancedDialogModule = await import(dataModule("../web/js/aio/advanced_set
 const recommendationModule = await import(dataModule("../web/js/aio/torch_compile_recommendation.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 const modelProfilesModule = await import(dataModule("../web/js/aio/model_profiles.js"));
+const mossSettingsModule = await import(dataModule("../web/js/aio/moss_settings_section.js"));
 const numericLimits = {
   samplerSteps: { min: 1, max: 10000 },
   samplerCfg: { min: 0, max: 100 },
@@ -231,6 +232,7 @@ function createFixture({
     row.className = "easyuse-anima-aio-field";
     row.setAttribute("data-test-label", label);
     row.setAttribute("data-test-tooltip", tooltipKey);
+    element.title = tooltipKey ? `tooltip:${tooltipKey}` : "";
     row.append(element);
     section.append(row);
     return element;
@@ -363,6 +365,16 @@ function createFixture({
 
   const openAdvancedSettings = advancedDialogModule.aioCreateAdvancedSettingsDialog({
     document,
+    modelSettingsEditor: {
+      create: (settings) => mossSettingsModule.aioCreateMossSettingsSection({
+        document,
+        controls: { field, numberInput, checkbox, textInput, selectInput },
+        text,
+        defaults: settingsModule.aioGenerationDefaultsForFamily("moss_image").model_settings.moss_image,
+        mergeDefaults: settingsModule.aioMergeDefaults,
+        normalizeSeed: settingsModule.aioNormalizeSeedValue,
+      }, settings),
+    },
     controls: {
       createDialog,
       field,
@@ -481,14 +493,14 @@ function createFixture({
   const conditioning = sectionByHeading(cancelDialog.body, "Conditioning");
   const modelPatches = sectionByHeading(cancelDialog.body, "Model Patch / Optimization");
   const artistMix = sectionByHeading(cancelDialog.body, "Artist Mix");
-  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const dave = subsectionByHeading(modelPatches, "DAVE (Anima)");
   const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
   const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
-  const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
+  const torch = subsectionByHeading(kj, "Block Compile");
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
@@ -620,17 +632,17 @@ function createFixture({
   const applyConditioning = sectionByHeading(applyDialog.body, "Conditioning");
   const applyModelPatches = sectionByHeading(applyDialog.body, "Model Patch / Optimization");
   const applyArtistMix = sectionByHeading(applyDialog.body, "Artist Mix");
-  const applyDave = subsectionByHeading(applyModelPatches, "Anima DAVE");
+  const applyDave = subsectionByHeading(applyModelPatches, "DAVE (Anima)");
   const applyDaveCustomStages = subsectionByHeading(applyDave, "Custom DAVE stages");
   const applySafePag = subsectionByHeading(applyModelPatches, "Anima Safe PAG");
   const applySafePagCustomStages = subsectionByHeading(applySafePag, "Custom Safe PAG stages");
-  const applyKj = subsectionByHeading(applyModelPatches, "KJNodes Optimization");
+  const applyKj = subsectionByHeading(applyModelPatches, "Optimization");
   const applySage = subsectionByHeading(applyKj, "SageAttention (KJNodes)");
   const applySageCustomStages = subsectionByHeading(
     applySage,
     "Custom SageAttention stages",
   );
-  const applyTorch = subsectionByHeading(applyKj, "Torch Compile (KJNodes)");
+  const applyTorch = subsectionByHeading(applyKj, "Block Compile");
   const applyTorchDetails = subsectionByHeading(applyTorch, "Torch Compile Parameters");
 
   controlIn(applyConditioning, "NegPip").value = "on";
@@ -720,9 +732,9 @@ function createFixture({
     },
     {
       enabled: true,
-      mask: "dave_alpha.npz",
+      mask: "auto",
       strength: 0,
-      tau: 0.1,
+      tau: 0.06,
       stage_scope: {
         first_pass: true,
         highres: true,
@@ -789,8 +801,8 @@ function createFixture({
       enabled: true,
       backend: "inductor",
       fullgraph: false,
-      mode: "max-autotune-no-cudagraphs",
-      dynamic: "false",
+      mode: "default",
+      dynamic: "auto",
       compile_transformer_blocks_only: true,
       dynamo_cache_size_limit: 64,
       debug_compile_keys: false,
@@ -858,11 +870,11 @@ function createFixture({
   await flushPromises();
   const dialog = fresh.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const dave = subsectionByHeading(modelPatches, "DAVE (Anima)");
   const customStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
   const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
   assert.equal(controlIn(dave, "DAVE stages").value, "first_pass_only");
@@ -888,7 +900,7 @@ function createFixture({
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const customStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
   const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
   assert.equal(controlIn(safePag, "Safe PAG stages").value, "custom");
@@ -933,7 +945,7 @@ function createFixture({
   await flushPromises();
   const dialog = custom.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const dave = subsectionByHeading(modelPatches, "DAVE (Anima)");
   const customStages = subsectionByHeading(dave, "Custom DAVE stages");
   assert.equal(controlIn(dave, "DAVE stages").value, "custom");
   controlIn(customStages, "First pass").checked = false;
@@ -955,7 +967,7 @@ function createFixture({
   await flushPromises();
   const dialog = custom.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
   const customStages = subsectionByHeading(sage, "Custom SageAttention stages");
   assert.equal(controlIn(sage, "SageAttention stages").value, "custom");
@@ -973,7 +985,7 @@ function createFixture({
 }
 
 for (const dependencyCase of [
-  { key: "dave", backend: "Anima DAVE" },
+  { key: "dave", backend: "DAVE (Anima)" },
   { key: "safePag", backend: "Anima Safe PAG" },
   { key: "kjFp16", backend: "KJNodes FP16 accum" },
   { key: "kjSage", backend: "SageAttention" },
@@ -993,14 +1005,14 @@ for (const dependencyCase of [
   fixture.openAdvancedSettings(fixture.node);
   const dialog = fixture.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const dave = subsectionByHeading(modelPatches, "DAVE (Anima)");
   const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
   const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
-  const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
+  const torch = subsectionByHeading(kj, "Block Compile");
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
@@ -1118,13 +1130,13 @@ for (const dependencyCase of [
   fixture.openAdvancedSettings(fixture.node);
   const dialog = fixture.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const dave = subsectionByHeading(modelPatches, "DAVE (Anima)");
   const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
-  const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
+  const torch = subsectionByHeading(kj, "Block Compile");
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
@@ -1188,20 +1200,20 @@ for (const dependencyCase of [
     [torchDetails, "Disable dynamic VRAM"],
   ], true);
   assertChecked([
-    [dave, "Use DAVE", false],
+    [dave, "Use DAVE", true],
     [safePag, "Use Safe PAG", false],
     [kj, "KJNodes FP16 accum", false],
     [sage, "Allow compile", false],
-    [torch, "Use Torch compile", false],
+    [torch, "Use Torch compile", true],
   ]);
   assert.equal(controlIn(sage, "Mode").value, "disabled");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "none");
-  assert.equal(torchDetails.style.display, "none");
+  assert.equal(torchDetails.style.display, "");
   assert.equal(warning.hidden, false);
   assert.equal(
     warning.textContent,
     [
-      'format:warning.optionalDependencyMissing:{"backend":"Anima DAVE","pack":"pack:dave"}',
+      'format:warning.optionalDependencyMissing:{"backend":"DAVE (Anima)","pack":"pack:dave"}',
       'format:warning.optionalDependencyMissing:{"backend":"Anima Safe PAG","pack":"pack:safePag"}',
       'format:warning.optionalDependencyMissing:{"backend":"KJNodes FP16 accum","pack":"pack:kjFp16"}',
       'format:warning.optionalDependencyMissing:{"backend":"SageAttention","pack":"pack:kjSage"}',
@@ -1221,12 +1233,12 @@ for (const dependencyCase of [
   assert.deepEqual(dialog.trace, ["merge", "write", "render", "remove"]);
   assert.equal(fixture.writes.length, 1);
   assert.equal(fixture.renders.length, 1);
-  assert.equal(fixture.node.settings.model_patches.dave.enabled, false);
+  assert.equal(fixture.node.settings.model_patches.dave.enabled, true, "Missing DAVE does not discard saved enabled state");
   assert.equal(fixture.node.settings.model_patches.safe_pag.enabled, false);
   assert.equal(fixture.node.settings.model_patches.kj.fp16_accumulation, false);
   assert.equal(fixture.node.settings.model_patches.kj.sage_attention, "disabled");
   assert.equal(fixture.node.settings.model_patches.kj.sage_allow_compile, false);
-  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, false);
+  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, true, "Unavailable providers retain explicit saved state");
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
 }
 
@@ -1254,11 +1266,11 @@ function supportedRecommendation() {
 
 function torchRecommendationControls(dialog) {
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
-  const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
+  const kj = subsectionByHeading(modelPatches, "Optimization");
+  const torch = subsectionByHeading(kj, "Block Compile");
   const details = subsectionByHeading(torch, "Torch Compile Parameters");
   const button = findByText(torch, "text:button.torchCompileRecommend");
-  const status = find(torch, (element) => element.getAttribute?.("aria-live") === "polite");
+  const status = find(torch, (element) => element.getAttribute?.("data-torch-compile-recommendation") === "true");
   assert.ok(button, "missing Torch Compile recommendation button");
   assert.ok(status, "missing Torch Compile recommendation status");
   return { torch, details, button, status };
@@ -1397,6 +1409,10 @@ function torchRecommendationControls(dialog) {
   await flushPromises();
   assert.equal(controls.status.getAttribute("data-state"), "unsupported");
   assert.ok(controls.status.textContent.includes("text:status.torchCompileUnsupported"));
+  const recommendationMessage = controls.status.textContent;
+  controlIn(controls.torch, "Use Torch compile").emit("change");
+  assert.equal(controls.status.textContent, recommendationMessage, "dependency refresh retains an actual unsupported recommendation");
+  assert.equal(controls.status.getAttribute("data-state"), "unsupported");
   assert.deepEqual({
     backend: controlIn(controls.details, "Backend").value,
     dynamic: controlIn(controls.details, "Dynamic").value,
@@ -1458,7 +1474,7 @@ for (const family of ["moss_image", "krea2"]) {
   const patches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const shift = controlIn(patches, family === "krea2" ? "FLUX shift (mu)" : "AuraFlow shift");
   assert.equal(shift.disabled, false);
-  for (const label of ["Anima DAVE", "Anima Safe PAG"]) {
+  for (const label of [`DAVE (${family === "moss_image" ? "MOSS" : "Krea2"})`, "Anima Safe PAG"]) {
     const section = subsectionByHeading(dialog.body, label);
     assert.ok(section.querySelectorAll("input, select, button").every((control) => control.disabled));
   }
@@ -1476,6 +1492,241 @@ for (const family of ["moss_image", "krea2"]) {
 }
 console.log("AiO Advanced settings dialog smoke passed.");
 
+function advertiseOptimizations(family, compileProviders, extraFeatures = {}) {
+  const feature = { supported: true, status: "available", stages: ["sampler", "highres", "detailer", "upscale"] };
+  modelProfilesModule.aioUpdateModelCapabilities({
+    [`modelProfile_${family}`]: { input: { required: { generation_settings: ["STRING", {
+      aio_capabilities: {
+        contract_version: 1, model_family: family,
+        features: { torch_compile: feature, ...(family === "moss_image" ? { dave: feature } : {}), ...extraFeatures },
+        optimization_providers: { torch_compile: compileProviders },
+      },
+    }] } } },
+  });
+}
+const compileProviders = [
+  { id: "kj", node_id: "TorchCompileModelAdvanced", models: ["anima", "moss_image", "krea2"], status: "available" },
+  { id: "anima_block_compile", node_id: "AnimaBlockCompile", models: ["anima"], status: "available" },
+];
+
+{
+  modelProfilesModule.aioUpdateModelCapabilities({});
+  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily("moss_image"), deferLoads: true });
+  fixture.openAdvancedSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const { torch, button, details, status } = torchRecommendationControls(dialog);
+  const dave = subsectionByHeading(dialog.body, "DAVE (MOSS)");
+  assert.equal(controlIn(torch, "Compile provider").disabled, true);
+  assert.equal(button.disabled, true);
+  assert.ok(controlIn(torch, "Compile provider").title.includes("text.modelTorchCompileUnsupported"));
+  assert.ok(controlIn(dave, "Mask").title.includes("text.modelUnsupported"));
+  assert.equal(status.getAttribute("data-state"), "unsupported");
+  advertiseOptimizations("moss_image", compileProviders);
+  fixture.resolveLoads();
+  await flushPromises();
+  assert.equal(controlIn(torch, "Compile provider").disabled, false, "async capabilities unlock the provider control");
+  assert.equal(controlIn(torch, "Use Torch compile").disabled, false);
+  assert.equal(button.disabled, false, "async capabilities unlock recommendations");
+  assert.equal(controlIn(torch, "Compile provider").title, "tooltip:tip.torchCompileProvider");
+  assert.equal(controlIn(details, "Backend").title, "tooltip:tip.torchCompileBackend");
+  assert.equal(controlIn(dave, "Mask").title, "tooltip:tip.daveMask");
+  assert.equal(controlIn(dave, "DAVE tau").title, "tooltip:tip.daveTau");
+  assert.equal(button.title, "");
+  assert.equal(status.textContent, "", "initial capability warning is removed after support loads");
+  assert.equal(status.getAttribute("data-state"), "");
+  assert.equal(status.hidden, true);
+  action(dialog, "button.cancel").emit("click");
+}
+
+{
+  const unavailable = { supported: false, status: "missing_dependency", stages: [] };
+  advertiseOptimizations("anima", compileProviders, { sage_attention: unavailable, fp16_accumulation: unavailable });
+  const settings = configuredSettings();
+  settings.model_patches.kj.torch_compile.provider = "anima_block_compile";
+  const fixture = createFixture({ settings, available: { kjTorchCompile: false, animaBlockCompile: true } });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const { torch, details, button } = torchRecommendationControls(dialog);
+  assert.equal(controlIn(torch, "Compile provider").value, "anima_block_compile");
+  assert.equal(controlIn(subsectionByHeading(dialog.body, "Optimization"), "KJNodes FP16 accum").disabled, true);
+  assert.equal(controlIn(subsectionByHeading(dialog.body, "SageAttention (KJNodes)"), "Mode").disabled, true);
+  assert.equal(controlIn(torch, "Use Torch compile").disabled, false);
+  assert.equal(find(torch, (element) => element.getAttribute?.("data-compile-runtime-note") === "true"), null);
+  assert.equal(details.style.display, "none", "KJ-only knobs do not describe Anima Block Compile");
+  assert.equal(button.parentElement.style.display, "none");
+  button.emit("click");
+  await flushPromises();
+  assert.equal(fixture.recommendationCalls.length, 0);
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.provider, "anima_block_compile");
+  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, true);
+  for (const [key, value] of Object.entries(settings.model_patches.kj.torch_compile)) {
+    assert.deepEqual(fixture.node.settings.model_patches.kj.torch_compile[key], value, `preserve inactive KJ option ${key}`);
+  }
+}
+
+{
+  advertiseOptimizations("anima", compileProviders);
+  const fixture = createFixture({ settings: configuredSettings(), deferRecommendations: true });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const { torch, details, button } = torchRecommendationControls(dialog);
+  const backend = controlIn(details, "Backend").value;
+  const provider = controlIn(torch, "Compile provider");
+  button.emit("click");
+  await flushPromises();
+  provider.value = "anima_block_compile";
+  provider.emit("change");
+  provider.value = "kj";
+  provider.emit("change");
+  fixture.resolveNextRecommendation(supportedRecommendation());
+  await flushPromises();
+  assert.equal(controlIn(details, "Backend").value, backend, "a provider switch invalidates a pending recommendation even after switching back");
+  action(dialog, "button.cancel").emit("click");
+}
+
+{
+  advertiseOptimizations("moss_image", compileProviders);
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  const fixture = createFixture({ settings });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const dave = subsectionByHeading(dialog.body, "DAVE (MOSS)");
+  const torch = subsectionByHeading(dialog.body, "Block Compile");
+  const runtimeNote = find(torch, (element) => element.getAttribute?.("data-compile-runtime-note") === "true");
+  assert.equal(runtimeNote?.textContent, "text:info.mossCompileRuntime");
+  assert.equal(controlIn(dave, "Use DAVE").disabled, false);
+  assert.equal(controlIn(dave, "Mask").value, "auto");
+  assert.equal(controlIn(dave, "DAVE tau").value, "0.06");
+  assert.equal(controlIn(torch, "Use Torch compile").disabled, false);
+  controlIn(dave, "Use DAVE").checked = true;
+  controlIn(torch, "Use Torch compile").checked = true;
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_patches.dave.enabled, true);
+  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.provider, "kj");
+  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, true);
+  assert.equal(fixture.node.settings.model_patches.kj.sage_attention, settings.model_patches.kj.sage_attention,
+    "runtime guidance never forces an attention implementation");
+  assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
+}
+
+for (const provider of ["anima_block_compile", "future_compiler"]) {
+  advertiseOptimizations("moss_image", compileProviders);
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  settings.model_patches.kj.torch_compile.provider = provider;
+  settings.model_patches.kj.torch_compile.enabled = true;
+  const fixture = createFixture({ settings });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const torch = subsectionByHeading(dialog.body, "Block Compile");
+  assert.equal(controlIn(torch, "Compile provider").value, provider);
+  assert.equal(controlIn(torch, "Use Torch compile").disabled, true);
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.model_patches.kj.torch_compile, settings.model_patches.kj.torch_compile,
+    "unsupported saved provider is never silently changed to KJ");
+}
+modelProfilesModule.aioUpdateModelCapabilities({});
+console.log("AiO optimization provider dialog smoke passed.");
+
+{
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  settings.model_settings.other_model = { future_feature: { enabled: true } };
+  settings.model_settings.moss_image.future_feature = { value: "retain" };
+  settings.model_settings.moss_image.slg.future_option = 17;
+  settings.model_settings.moss_image.slg.stage_scope.future_stage = true;
+  settings.model_settings.moss_image.prompt.future_option = "retain";
+  settings.model_settings.moss_image.prompt.seed = "18446744073709551615";
+  const fixture = createFixture({ settings });
+  const before = clone(fixture.node.settings);
+  fixture.openAdvancedSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const section = findByText(dialog.body, "text:moss.section").parentElement;
+  const mossControl = (path) => find(section, (element) => element.getAttribute?.("data-moss-setting") === path);
+  assert.equal(mossControl("slg.mode").value, "off");
+  assert.equal(mossControl("prompt.mode").value, "original");
+  assert.equal(mossControl("slg.layers").parentElement.parentElement.hidden, true);
+  assert.equal(mossControl("prompt.layout_json").parentElement.parentElement.hidden, true);
+  assert.deepEqual(fixture.node.settings, before, "opening MOSS settings never enables or persists a feature");
+  mossControl("slg.mode").value = "standard";
+  mossControl("slg.mode").emit("change");
+  mossControl("slg.layers").value = "21,22";
+  mossControl("slg.start_percent").value = "0.01";
+  mossControl("slg.stage_scope.highres").checked = false;
+  assert.equal(mossControl("slg.layers").parentElement.parentElement.hidden, false);
+  const layoutJson = '{\n  "summary":{"caption":"A poster"},"items":[]\n}';
+  mossControl("prompt.mode").value = "layout";
+  mossControl("prompt.mode").emit("change");
+  mossControl("prompt.layout_json").value = layoutJson;
+  assert.equal(mossControl("prompt.layout_json").parentElement.parentElement.hidden, false);
+  action(dialog, "button.apply").emit("click");
+  const saved = fixture.node.settings.model_settings;
+  assert.equal(saved.moss_image.slg.mode, "standard");
+  assert.equal(saved.moss_image.slg.layers, "21,22");
+  assert.equal(saved.moss_image.slg.start_percent, 0.01);
+  assert.equal(saved.moss_image.slg.stage_scope.highres, false);
+  assert.equal(saved.moss_image.slg.stage_scope.future_stage, true);
+  assert.equal(saved.moss_image.slg.future_option, 17);
+  assert.equal(saved.moss_image.prompt.layout_json, layoutJson, "layout text is preserved exactly");
+  assert.equal(saved.moss_image.prompt.seed, "18446744073709551615", "uint64 text seed remains exact");
+  assert.equal(saved.moss_image.prompt.future_option, "retain");
+  assert.deepEqual(saved.other_model, before.model_settings.other_model);
+  assert.deepEqual(saved.moss_image.future_feature, before.model_settings.moss_image.future_feature);
+  assert.deepEqual(fixture.node.settings.sampler.spectrum, before.sampler.spectrum);
+  assert.deepEqual(fixture.node.settings.model_patches.kj.torch_compile, before.model_patches.kj.torch_compile);
+  assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
+  fixture.openAdvancedSettings(fixture.node);
+  const reopened = fixture.dialogs[1];
+  assert.equal(find(reopened.body, (element) => element.getAttribute?.("data-moss-setting") === "prompt.layout_json").value, layoutJson);
+  action(reopened, "button.cancel").emit("click");
+  assert.deepEqual(fixture.node.settings.model_settings, saved);
+}
+
+for (const family of ["anima", "krea2"]) {
+  const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+  settings.model_settings = { moss_image: { prompt: { mode: "future_mode", future_field: true } } };
+  const fixture = createFixture({ settings });
+  fixture.openAdvancedSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  assert.equal(findByText(dialog.body, "text:moss.section"), null);
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.model_settings, settings.model_settings, "other models retain the inactive MOSS bank");
+}
+{
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  const fixture = createFixture({ settings });
+  fixture.openAdvancedSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const input = (path) => find(dialog.body, (element) => element.getAttribute?.("data-moss-setting") === path);
+  input("prompt.mode").value = "enhance";
+  input("prompt.mode").emit("change");
+  assert.equal(input("prompt.max_length").parentElement.parentElement.parentElement.hidden, false);
+  assert.ok(findByText(dialog.body, "text:moss.prompt.cost"));
+  input("prompt.max_length").value = "768";
+  input("prompt.temperature").value = "0.8";
+  input("prompt.top_k").value = "0";
+  input("prompt.seed").value = "18446744073709551615";
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_settings.moss_image.prompt.max_length, 768);
+  assert.equal(fixture.node.settings.model_settings.moss_image.prompt.temperature, 0.8);
+  assert.equal(fixture.node.settings.model_settings.moss_image.prompt.top_k, 0);
+  assert.equal(fixture.node.settings.model_settings.moss_image.prompt.seed, "18446744073709551615");
+  assert.equal(fixture.node.settings.model_settings.moss_image.prompt.layout_json, "", "empty Layout JSON stays available for input prompt fallback");
+}
+{
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  settings.model_settings.moss_image.slg.mode = "future_slg";
+  settings.model_settings.moss_image.prompt.mode = "future_prompt";
+  const fixture = createFixture({ settings });
+  fixture.openAdvancedSettings(fixture.node);
+  action(fixture.dialogs[0], "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.model_settings, settings.model_settings, "unknown MOSS modes remain inspectable and unchanged");
+}
+console.log("MOSS model settings dialog smoke passed.");
+
 for (const family of ["moss_image", "krea2"]) {
   const settings = settingsModule.aioGenerationDefaultsForFamily(family);
   settings.model_patches.dave.enabled = true;
@@ -1487,7 +1738,7 @@ for (const family of ["moss_image", "krea2"]) {
   await flushPromises();
   const dialog = fixture.dialogs[0];
   const patches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  assert.equal(controlIn(subsectionByHeading(dialog.body, "Anima DAVE"), "Use DAVE").checked, true);
+  assert.equal(controlIn(subsectionByHeading(dialog.body, `DAVE (${family === "moss_image" ? "MOSS" : "Krea2"})`), "Use DAVE").checked, true);
   const negpip = controlIn(sectionByHeading(dialog.body, "Conditioning"), "NegPip");
   assert.equal(negpip.disabled, family === "krea2");
   if (family === "moss_image") negpip.value = "on";
@@ -1513,7 +1764,7 @@ for (const family of ["moss_image", "krea2"]) {
   fixture.resolveLoads();
   await flushPromises();
   const dialog = fixture.dialogs[0];
-  const torch = subsectionByHeading(dialog.body, "Torch Compile (KJNodes)");
+  const torch = subsectionByHeading(dialog.body, "Block Compile");
   assert.ok(torch.querySelectorAll("input, select, button").every((control) => control.disabled));
   assert.equal(controlIn(torch, "Use Torch compile").checked, true, "saved unsupported compile state remains visible");
   const recommendation = torchRecommendationControls(dialog);

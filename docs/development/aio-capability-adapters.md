@@ -1,5 +1,33 @@
 # AiO capability adapters
 
+## Public Spectrum model-patch contract, 2026-10-25
+
+Base: `387868b`. Canonical `SpectrumMossModelPatch` and `SpectrumKrea2ModelPatch`
+providers no longer need `SPECTRUM_CAPABILITIES` or custom model-input metadata.
+AiO validates their public `INPUT_TYPES`, MODEL output, `FUNCTION = patch` and
+explicit callable arguments. Its reviewed mapping enables sampler, Highres,
+Detailer and Upscale. The public `steps` argument remains compatible, while
+Spectrum derives forecast scheduling from each actual sampler invocation.
+
+When beta/fork providers still expose class or model-input capability metadata,
+AiO validates those declarations and intersects their stages with its reviewed
+mapping. The old `Native*` IDs remain downstream fallbacks only when the
+canonical node is absent, and still require their legacy class marker. A broken
+canonical node never falls through to an older ID. Public reason codes and the
+AiO-owned `aio_capability_manifest` remain unchanged; runtime metadata is still
+excluded from saved settings. No model defaults or sampling math change here.
+
+Validation: the full gate passes on ComfyUI v0.42.1 (1,797 Python tests,
+three conditional skips, 127 JavaScript files and TypeScript 6.0.3).
+Fresh registration exposes both canonical providers and all four AiO stages
+without Spectrum metadata or the removed aliases. Public AiO checkpoint runs
+at 512x512 complete for MOSS SFT INT8 with uncond SLG (16 actual / 8 forecast)
+and Krea2 Turbo INT8 (6 actual / 2 forecast), both with zero fallbacks and finite
+saved latents. The MOSS fixed-seed RGB output matches the pre-review run exactly.
+These focused runs use compilation off; previous compile/secondary-stage
+evidence is reused for unchanged execution paths. No frontend DOM or saved
+settings shape changed, so the earlier two-canvas browser evidence is reused.
+
 ## Completion follow-up, 2026-10-21
 
 The implementation at `18c3f44` remains the model/GPU baseline. This follow-up

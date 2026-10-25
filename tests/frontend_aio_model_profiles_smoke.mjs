@@ -28,6 +28,14 @@ for (const [type, family, steps, cfg, shift, sampler] of expected) {
   assert.equal(settings.model_patches.aura_flow.shift, shift);
   assert.equal(settings.sampler.sampler_name, sampler);
   assert.equal(settings.sampler.scheduler, "simple");
+  if (family === "moss_image") {
+    assert.equal(settings.model_settings.moss_image.slg.mode, "off");
+    assert.equal(settings.model_settings.moss_image.prompt.mode, "original");
+    assert.deepEqual(settings.model_settings.moss_image.slg.stage_scope,
+      { first_pass: true, highres: true, detailer: true, upscale: true });
+  } else {
+    assert.deepEqual(settings.model_settings, {}, "MOSS defaults do not populate another model's settings bank");
+  }
   assert.deepEqual(parse(JSON.parse(aioSettingsToCompactJson(settings)), family), settings);
   const caps = aioGeneratorModelProfile({ type }).capabilities;
   assert.equal(caps.torchCompile, family !== "moss_image");
@@ -59,6 +67,19 @@ assert.deepEqual(legacy.future_root, { keep: true });
 const partial = parse({ sampler: { steps: 29 } }, "moss_image");
 assert.equal(partial.sampler.steps, 29);
 assert.equal(partial.sampler.cfg, 2.5);
+assert.deepEqual([partial.model_patches.dave.mask, partial.model_patches.dave.tau], ["auto", 0.06]);
+assert.deepEqual([
+  partial.model_patches.kj.torch_compile.provider,
+  partial.model_patches.kj.torch_compile.mode,
+  partial.model_patches.kj.torch_compile.dynamic,
+  partial.model_patches.kj.torch_compile.disable_dynamic_vram,
+], ["kj", "default", "auto", false]);
+const legacyOptimization = parse({ model_patches: {
+  dave: { mask: "dave_alpha.npz", tau: 0.1 },
+  kj: { torch_compile: { provider: "future_compiler", mode: "max-autotune-no-cudagraphs", dynamic: "false", disable_dynamic_vram: true } },
+} }, "anima");
+assert.deepEqual([legacyOptimization.model_patches.dave.mask, legacyOptimization.model_patches.dave.tau], ["dave_alpha.npz", 0.1]);
+assert.deepEqual(parse(JSON.parse(aioSettingsToCompactJson(legacyOptimization)), "anima"), legacyOptimization);
 const foreign = parse({ model_family: "moss_image", sampler: { cfg: 3.4 }, model_settings: { anima: { sampler: { cfg: 99 } } } }, "anima");
 assert.equal(foreign.model_family, "moss_image", "explicit foreign identity must survive for visible rejection");
 assert.equal(foreign.sampler.cfg, 3.4);
@@ -67,12 +88,55 @@ const exactSeed = aioParseSettingsValue('{"sampler":{"seed":18446744073709551615
 assert.equal(exactSeed.sampler.seed, "18446744073709551615");
 assert.equal(exactSeed.sampler.cfg, 1);
 
+const kreaDefaults = parse({}, "krea2");
+for (const stage of [kreaDefaults.sampler, kreaDefaults.highres, kreaDefaults.upscale, kreaDefaults.detailer.face, kreaDefaults.detailer.eye]) {
+  assert.equal(stage.spectrum.enabled, false);
+  assert.equal(stage.spectrum.warmup_steps, 3);
+  assert.equal(stage.spectrum.tail_actual_steps, 2);
+  assert.equal(stage.spectrum.cheby_degree, 1);
+  assert.equal(stage.spectrum.history_size, 8);
+}
+const savedKrea = parse({sampler: {spectrum: {warmup_steps: 9}}, highres: {spectrum: {tail_actual_steps: 7}}, detailer: {face: {spectrum: {cheby_degree: 4}}}}, "krea2");
+assert.equal(savedKrea.sampler.spectrum.warmup_steps, 9);
+assert.equal(savedKrea.highres.spectrum.tail_actual_steps, 7);
+assert.equal(savedKrea.detailer.face.spectrum.cheby_degree, 4);
+assert.deepEqual(parse(JSON.parse(aioSettingsToCompactJson(savedKrea)), "krea2"), savedKrea);
+
+// RAW's published steps/CFG and an arbitrary user shift must survive the same
+// settings path. 2.3 is a preservation fixture, not a RAW shift recommendation.
+const rawKrea = parse({
+  sampler: { steps: 52, cfg: 3.5 },
+  model_patches: { aura_flow: { shift: 2.3 } },
+}, "krea2");
+const restoredRawKrea = parse(JSON.parse(aioSettingsToCompactJson(rawKrea)), "krea2");
+assert.equal(restoredRawKrea.sampler.steps, 52);
+assert.equal(restoredRawKrea.sampler.cfg, 3.5);
+assert.equal(restoredRawKrea.model_patches.aura_flow.shift, 2.3);
+assert.deepEqual(restoredRawKrea, rawKrea, "RAW/custom sampling is never reset to Turbo defaults");
+
 
 const entry = readFileSync(new URL("../web/js/easyuse_anima_aio.js", import.meta.url), "utf8");
+const mossTextKeys = entry.split("\n").map((line) => line.match(/^\s*"(moss\.[^"]+)":/)).filter(Boolean).map((match) => match[1]);
+assert.equal(new Set(mossTextKeys).size, 30);
+for (const key of new Set(mossTextKeys)) {
+  assert.equal(mossTextKeys.filter((candidate) => candidate === key).length, 4, `${key} is present in every locale`);
+}
+const mossCompileHints = entry.split("\n").filter((line) => line.includes('"info.mossCompileRuntime":'));
+assert.equal(mossCompileHints.length, 4, "MOSS runtime guidance is translated for every supported locale");
+for (const hint of mossCompileHints) {
+  for (const term of ["v0.42.1", "INT8/ConvRot", "attention", "fused-linear", "Inductor", "Spectrum"]) {
+    assert.ok(hint.includes(term), `MOSS runtime guidance retains tested scope: ${term}`);
+  }
+}
+for (const key of ["field.compileProvider", "tip.torchCompileProvider", "info.animaBlockCompile", "status.compileProviderUnavailable"]) {
+  const values = entry.split("\n").filter((line) => line.includes(`"${key}":`));
+  assert.equal(values.length, 4, `${key} is translated for every supported locale`);
+}
 const kreaResourceHints = entry.split("\n").filter((line) => line.includes('"text.kreaRequirements":'));
 assert.equal(kreaResourceHints.length, 4);
 for (const hint of kreaResourceHints) {
   assert.ok(hint.includes("qwen_image_vae.safetensors"), "each locale must identify Krea2's compatible VAE");
+  assert.ok(hint.includes("Turbo") && hint.includes("RAW"), "each locale distinguishes the Turbo defaults from RAW/custom settings");
   assert.ok(!hint.includes("FLUX.2"));
 }
 
@@ -92,9 +156,26 @@ function modelInfo(family, features, contractVersion = 1) {
 }
 const forecast = {
   supported: true, status: "available", stages: ["sampler"],
-  provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch", reason_code: "",
+  provider: "ComfyUI-Spectrum-KSampler", adapter: "SpectrumMossModelPatch", reason_code: "",
 };
 const allStages = { supported: true, status: "available", stages: ["sampler", "highres", "detailer", "upscale"], provider: "", adapter: "", reason_code: "" };
+const optimizationInfo = modelInfo("moss_image", { dave: allStages, torch_compile: allStages });
+optimizationInfo.input.required.generation_settings[1].aio_capabilities.optimization_providers = {
+  torch_compile: [
+    { id: "kj", node_id: "TorchCompileModelAdvanced", models: ["anima", "moss_image", "krea2"], status: "available" },
+    { id: "anima_block_compile", node_id: "AnimaBlockCompile", models: ["anima"], status: "available" },
+    { id: "invalid", node_id: "Invalid", models: ["moss_image"], status: "unreviewed" },
+  ],
+};
+aioUpdateModelCapabilities({ modelProfile_moss_image: optimizationInfo });
+assert.equal(aioModelProfile("moss_image").capabilities.dave, true);
+assert.equal(aioModelProfile("moss_image").capabilities.torchCompile, true);
+assert.deepEqual(aioModelProfile("moss_image").optimizationProviders("torch_compile").map(({ id }) => id), ["kj"]);
+const returnedProvider = aioModelProfile("moss_image").optimizationProviders("torch_compile")[0];
+returnedProvider.models.length = 0;
+assert.equal(aioModelProfile("moss_image").optimizationProviders("torch_compile").length, 1, "provider metadata remains private runtime state");
+aioUpdateModelCapabilities({});
+assert.deepEqual(aioModelProfile("anima").optimizationProviders("torch_compile").map(({ id }) => id), ["kj"], "old backend only exposes its legacy provider");
 aioUpdateModelCapabilities({
   modelProfile_moss_image: modelInfo("moss_image", { spectrum: forecast, artist_mix: allStages, aio_hook: allStages }),
   modelProfile_anima: modelInfo("anima", { spectrum: allStages, mod_guidance: allStages }),

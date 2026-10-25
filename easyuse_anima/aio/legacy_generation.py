@@ -22,6 +22,7 @@ from ..prompt.conditioning import (
 )
 from ..prompt.data import (
     _advanced_outputs_from_prompt_data,
+    _apply_prompt_data_overrides,
     _prompt_data_json_safe,
 )
 from .conditioning import _aio_usdu_conditioning
@@ -96,6 +97,7 @@ from .negpip import (
     _aio_negpip_mode,
     apply_aio_negpip,
 )
+from .moss_features import prepare_moss_prompt, validate_moss_prompt
 from .output import (
     _aio_save_filename_prefix,
     _save_image_with_comfy,
@@ -477,6 +479,9 @@ def _run_aio_generation_pipeline(
     validate_aio_model_resources(family, context)
     generation_config, prepared_aio_hook = _aio_generation_config_from_dict(settings), prepare_aio_hook(aio_hook)
     prompt_data, effective_lora_stack = _prepare_aio_prompt_loras(context["prompt_data"], lora_stack, normalize_prompt_data=_normalize_prompt_data)
+    moss_source_prompt = _advanced_outputs_from_prompt_data(prompt_data)[0] if family == "moss_image" else ""
+    if family == "moss_image":
+        validate_moss_prompt(moss_source_prompt, settings)
     base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
     validate_aio_model_resources(family, context, model=base_model)
     model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
@@ -486,7 +491,10 @@ def _run_aio_generation_pipeline(
     )
     negpip_mode = _aio_negpip_mode(settings.get("negpip"))
     model_lineage_base = model_with_lora
+    moss_prompt_metadata = None
     try:
+        if family == "moss_image":
+            moss_prompt, moss_prompt_metadata = prepare_moss_prompt(clip, moss_source_prompt, settings)
         model_lineage_base, clip = apply_aio_negpip(
             model_with_lora,
             clip,
@@ -505,6 +513,11 @@ def _run_aio_generation_pipeline(
             height,
         ) = _advanced_outputs_from_prompt_data(prompt_data)
         validate_aio_model_dimensions(family, width, height)
+        if moss_prompt_metadata is not None:
+            positive_prompt = metadata_prompt = moss_prompt
+            prompt_data = _apply_prompt_data_overrides(prompt_data, {
+                "positive_prompt": positive_prompt, "metadata_prompt": metadata_prompt,
+            })
         (
             _positive_execution_prompt,
             negative_execution_prompt,
@@ -515,21 +528,25 @@ def _run_aio_generation_pipeline(
             negpip_mode,
         )
         artist_mix = settings["artist_mix"]
-        positive = _encode_prompt_data_positive_conditioning(
-            clip,
-            prompt_data,
-            positive_prompt,
-            positive_execution_suffix=_derived_negative_contribution,
-            artist_mix_mode=artist_mix["mode"],
-            artist_mix_start_percent=artist_mix["start_percent"],
-            artist_mix_strength_scale=artist_mix["strength_scale"],
-            artist_mix_style_gain=artist_mix["style_gain"],
-            artist_mix_rms_scale_cap=artist_mix["rms_scale_cap"],
-            artist_mix_exact_top_k=artist_mix["exact_top_k"],
-            artist_mix_cluster_count=artist_mix["cluster_count"],
-            artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
-            artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
-        )
+        if family == "moss_image" and artist_mix["mode"] == "off":
+            # MOSS captions, rendered text and Layout JSON are not tag lists.
+            positive = _encode_with_comfy_clip(clip, _positive_execution_prompt)
+        else:
+            positive = _encode_prompt_data_positive_conditioning(
+                clip,
+                prompt_data,
+                positive_prompt,
+                positive_execution_suffix=_derived_negative_contribution,
+                artist_mix_mode=artist_mix["mode"],
+                artist_mix_start_percent=artist_mix["start_percent"],
+                artist_mix_strength_scale=artist_mix["strength_scale"],
+                artist_mix_style_gain=artist_mix["style_gain"],
+                artist_mix_rms_scale_cap=artist_mix["rms_scale_cap"],
+                artist_mix_exact_top_k=artist_mix["exact_top_k"],
+                artist_mix_cluster_count=artist_mix["cluster_count"],
+                artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
+                artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
+            )
         negative = _encode_with_comfy_clip(clip, negative_execution_prompt)
     except BaseException:
         if model_lineage_base is not model_with_lora:
@@ -630,6 +647,8 @@ def _run_aio_generation_pipeline(
         "upscale": [],
     }
     generation_state.metadata["model_patches_by_stage"] = model_patches_by_stage
+    if moss_prompt_metadata is not None:
+        generation_state.metadata["moss_prompt"] = moss_prompt_metadata
     negpip_metadata = _aio_negpip_metadata(
         negpip_mode,
         negative_prompt=negative_prompt,

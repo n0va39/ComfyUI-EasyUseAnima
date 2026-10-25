@@ -21,6 +21,7 @@ from .model_preparation import (
     _aio_sage_attention_mode,
 )
 from .negpip import _aio_negpip_cache_signature
+from .moss_features import moss_slg_settings
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
 AIO_FIRST_PASS_CACHE_MAX_BYTES = 512 * 1024 * 1024
@@ -451,6 +452,7 @@ def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
             patches["kj.torch_compile"] = {
                 key: torch_compile.get(key)
                 for key in (
+                    "provider",
                     "backend",
                     "fullgraph",
                     "mode",
@@ -563,6 +565,9 @@ def _aio_first_pass_cache_key(
         settings.get("negpip"),
         negative_prompt=str(negative_prompt or ""),
     )
+    slg = moss_slg_settings(settings, "first_pass")
+    if slg is not None:
+        payload["moss_slg"] = slg
     if settings.get("model_family", "anima") != "anima":
         payload["model_family"] = settings["model_family"]
     if negpip_signature is not None:

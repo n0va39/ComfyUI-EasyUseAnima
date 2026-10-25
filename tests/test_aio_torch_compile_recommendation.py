@@ -179,6 +179,20 @@ class TorchCompileWorkloadClassificationTests(unittest.TestCase):
 
 
 class TorchCompileRecommendationPolicyTests(unittest.TestCase):
+    def test_model_token_shapes_and_provider_specific_recommendations(self):
+        for family in ("moss_image", "krea2"):
+            settings = {**_settings(), "model_family": family}
+            payload = recommend_torch_compile(_diagnostics(), settings, {"width": 1024, "height": 1024}, 1)
+            self.assertEqual(payload["values"]["dynamic"], "auto")
+            self.assertIn("model_uses_variable_text_tokens", payload["reason_codes"])
+        settings = {**_settings(), "model_patches": {"kj": {
+            "torch_compile": {"provider": "anima_block_compile"},
+        }}}
+        payload = recommend_torch_compile(_diagnostics(), settings, {"width": 1024, "height": 1024}, 1)
+        self.assertFalse(payload["supported"])
+        self.assertEqual(payload["values"], {})
+        self.assertIn("provider_has_own_compile_settings", payload["reason_codes"])
+
     def test_fixed_high_vram_uses_balanced_static_safe_axis(self):
         payload = recommend_torch_compile(
             _diagnostics(),

@@ -73,7 +73,7 @@ function stageRequest(settings, name) {
 
 /**
  * Build the minimum workload request. Prompt fields, profiles, workflow data,
- * and model/user values are intentionally excluded.
+ * and model/user values are intentionally excluded. Family/provider are bounded IDs.
  */
 export function aioTorchCompileRecommendationRequest(settings, context = {}) {
   const resolution = objectValue(context?.resolution);
@@ -96,6 +96,12 @@ export function aioTorchCompileRecommendationRequest(settings, context = {}) {
 
   return {
     generation_settings: {
+      ...(["anima", "moss_image", "krea2"].includes(settings?.model_family)
+        ? { model_family: settings.model_family } : {}),
+      ...(["kj", "anima_block_compile"].includes(settings?.model_patches?.kj?.torch_compile?.provider)
+        ? { model_patches: { kj: { torch_compile: {
+          provider: settings.model_patches.kj.torch_compile.provider,
+        } } } } : {}),
       highres: stageRequest(settings, "highres"),
       detailer: stageRequest(settings, "detailer"),
       upscale: stageRequest(settings, "upscale"),

@@ -284,10 +284,10 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     let profile = modelProfile(settings.model_family);
     let capabilities = profile.capabilities;
     let spectrumCapability = profile.feature("spectrum", "sampler");
-    const nativeMoss = profile.family === "moss_image";
-    const spectrumPatchKey = nativeMoss ? "spectrumNativeMoss" : "spectrumPatch";
+    const modelPatchOnly = profile.family !== "anima";
+    const spectrumPatchKey = profile.spectrumDependencyKey || "spectrumPatch";
     const spectrumAvailable = () => spectrumCapability.supported
-      && (!nativeMoss || settings.sampler.backend === "comfy_ksampler")
+      && (!modelPatchOnly || settings.sampler.backend === "comfy_ksampler")
       && optionalDependencyAvailable(spectrumPatchKey);
     const spectrumUnavailableText = () => {
       const status = spectrumCapability.supported && !optionalDependencyAvailable(spectrumPatchKey)
@@ -428,7 +428,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       SPECTRUM_ADVANCED_KNOWN_INPUTS,
       settings.sampler.spectrum_extra || {},
     );
-    if (!nativeMoss) spectrum.append(spectrumExtra.section);
+    if (!modelPatchOnly) spectrum.append(spectrumExtra.section);
 
     const spd = makeSubsection("Spectrum + SPD / SPEED");
     const spdScale = field(spd, "Scale", numberInput(settings.sampler.spd.scale, "0.05"));
@@ -458,7 +458,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       profile = modelProfile(settings.model_family);
       capabilities = profile.capabilities;
       spectrumCapability = profile.feature("spectrum", "sampler");
-      modelWarning.hidden = nativeMoss ? spectrumAvailable() : spectrumCapability.supported;
+      modelWarning.hidden = modelPatchOnly ? spectrumAvailable() : spectrumCapability.supported;
       modelWarning.textContent = spectrumUnavailableText();
       const messages = [];
       for (const option of Array.from(backend.options)) {
@@ -513,7 +513,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       applyNodeInputInfo(spdScale, "spectrumSpd", "spd_scale", "tip.spdScale");
       applyNodeInputInfo(spdSigma, "spectrumSpd", "spd_sigma", "tip.spdSigma");
       applyNodeInputInfo(spdSmc, "spectrumSpd", "adaptive_smc_alpha", "tip.smcAlpha");
-      if (!nativeMoss && capabilities.spectrum && spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
+      if (!modelPatchOnly && capabilities.spectrum && spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
         messages.push(aioFormat("warning.optionalDependencyMissing", {
           backend: "Spectrum Patch",
           pack: optionalDependencyPack("spectrumPatch"),
@@ -523,9 +523,9 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       }
       dependencyWarning.hidden = messages.length === 0;
       dependencyWarning.textContent = messages.join(" ");
-      spectrumCompat.disabled = !spectrumCapability.supported || (nativeMoss && !spectrumAvailable());
+      spectrumCompat.disabled = !spectrumCapability.supported || (modelPatchOnly && !spectrumAvailable());
       spectrumCompat.title = nodeInputTooltip(spectrumInputDependency, "compat_policy") || aioText("tip.spectrumCompat");
-      if (!spectrumCapability.supported || (nativeMoss && !spectrumAvailable())) {
+      if (!spectrumCapability.supported || (modelPatchOnly && !spectrumAvailable())) {
         for (const control of spectrum.querySelectorAll("input, select, textarea, button")) {
           control.disabled = true;
           control.title = spectrumUnavailableText();
@@ -640,14 +640,14 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.mod_guidance.advanced.mod_taper = Number(modTaper.value || 0);
       next.mod_guidance.advanced.mod_taper_scale = Number(modTaperScale.value || 0.25);
       next.mod_guidance.advanced.mod_final_w = Number(modFinalW.value || 0);
-      if (!spectrumCapability.supported || (nativeMoss && !spectrumAvailable())) {
+      if (!spectrumCapability.supported || (modelPatchOnly && !spectrumAvailable())) {
         next.sampler.backend = settings.sampler.backend;
         next.sampler.spectrum = settings.sampler.spectrum;
         next.sampler.spectrum_extra = settings.sampler.spectrum_extra;
         next.sampler.spd = settings.sampler.spd;
         next.sampler.spd_extra = settings.sampler.spd_extra;
       }
-      if (nativeMoss) {
+      if (modelPatchOnly) {
         next.sampler.backend = settings.sampler.backend;
         next.sampler.spectrum_extra = settings.sampler.spectrum_extra;
         next.sampler.spd = settings.sampler.spd;

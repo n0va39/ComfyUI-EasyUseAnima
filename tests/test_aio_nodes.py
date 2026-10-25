@@ -653,7 +653,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 3.0)
         self.assertFalse(settings["model_patches"]["safe_pag"]["enabled"])
         self.assertEqual(settings["model_patches"]["safe_pag"]["block_indices"], "18")
-        self.assertEqual(settings["model_patches"]["kj"]["torch_compile"]["mode"], "max-autotune-no-cudagraphs")
+        self.assertEqual(settings["model_patches"]["kj"]["torch_compile"]["mode"], "default")
         self.assertTrue(settings["save"]["enabled"])
         self.assertEqual(settings["save"]["backend"], "image_saver")
         self.assertNotIn("filename_prefix", settings["save"])
@@ -944,7 +944,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
 
         self.assertEqual(settings["sampler"]["backend"], "comfy_ksampler")
         self.assertFalse(settings["model_patches"]["dave"]["enabled"])
-        self.assertEqual(settings["model_patches"]["dave"]["mask"], "dave_alpha.npz")
+        self.assertEqual(settings["model_patches"]["dave"]["mask"], "auto")
 
     def test_aio_seed_accepts_rgthree_special_values(self):
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({

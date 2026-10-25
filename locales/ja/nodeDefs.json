@@ -1295,7 +1295,7 @@
   },
   "EasyUseMossAIOGenerator": {
     "display_name": "AiO Generator (MOSS)",
-    "description": "ComfyUI 標準 KSampler を使う MOSS 専用 AiO 生成ノードです。Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、汎用 AiO hook、KJ 最適化に対応します。モデル別の対応範囲はノードの案内を確認してください。",
+    "description": "ComfyUI 標準 KSampler を使う MOSS 専用 AiO 生成ノードです。Input には MOSS-Image、Qwen3.5 9B、CLIP type moss_image、FLUX.2 VAE を使用します。Highres、SAM3 Detailer、USDU/ResShift、AiO hook に対応します。詳細オプション > MOSS 専用設定で SLG・テキストプロンプト拡張・Layout JSON、最適化で attention・コンパイルを設定できます。DAVE は MOSS マスクを持つノード、Spectrum は互換性のある MOSS モデルパッチノードが必要です。コンパイル互換性はチェックポイントと実行環境に依存します。Artist Mix・NegPip の対応はプロンプトモードに依存し、NegPip は native-MOSS 対応 ComfyUI-ppm も必要です。",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",
@@ -1331,7 +1331,7 @@
   },
   "EasyUseKrea2AIOGenerator": {
     "display_name": "AiO Generator (Krea2)",
-    "description": "ComfyUI 標準 KSampler を使う Krea2 専用 AiO 生成ノードです。Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、汎用 AiO hook、KJ 最適化に対応します。モデル別の対応範囲はノードの案内を確認してください。",
+    "description": "ComfyUI 標準 KSampler を使う Krea2 専用 AiO 生成ノードです。Input には Krea2、Qwen3-VL 4B、CLIP type krea2、Qwen Image VAE を使用します。初期値は Turbo の開始設定: 8 steps、CFG 1、Euler/simple、shift 1.15。RAW・カスタムチェックポイントには各モデル推奨のサンプリング設定を使用してください。Highres、SAM3 Detailer、USDU/ResShift、Artist Mix、AiO hook に対応します。詳細オプション > 最適化で attention・コンパイルを設定できます。Spectrum は互換性のある Krea2 モデルパッチノードが必要です。Krea2 は DAVE・Safe PAG・Mod Guidance・NegPip に未対応です。",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",

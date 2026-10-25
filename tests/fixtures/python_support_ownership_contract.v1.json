@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 229,
+    "expected_files": 231,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1438,6 +1438,18 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
+      "owner": "tests/test_aio_generation_settings.py",
+      "path": "tests/test_aio_moss_features.py",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "MOSS public SLG and prompt adapters, structured prompt preservation and model settings."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
       "owner": "tests/test_aio_native_image_output.py",
       "path": "tests/test_aio_native_image_output.py",
       "production_groups": [
@@ -1478,6 +1490,17 @@
         "nodes"
       ],
       "purpose": "Direct Python unittest contract for test aio nodes."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_model_preparation.py",
+      "path": "tests/test_aio_optimization.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Model-specific optimization provider ABI, delegation and cache isolation."
     },
     {
       "execution_mode": "unittest",

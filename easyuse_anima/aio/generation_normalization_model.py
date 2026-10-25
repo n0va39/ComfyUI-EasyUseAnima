@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from .moss_features import normalize_moss_settings
+
 from .generation_defaults import (
     AIO_AURA_FLOW_SHIFT_MAX,
     AIO_AURA_FLOW_SHIFT_MIN,
@@ -237,6 +239,8 @@ def _normalize_kj_settings(
         torch_compile = {}
         kj["torch_compile"] = torch_compile
     torch_compile["enabled"] = as_bool(torch_compile.get("enabled"), False)
+    # Preserve foreign/future provider IDs; execution validates an enabled choice.
+    torch_compile["provider"] = str(torch_compile.get("provider") or "kj")
     torch_compile["backend"] = choice(
         torch_compile.get("backend"), ("inductor", "cudagraphs"), "inductor"
     )
@@ -244,10 +248,10 @@ def _normalize_kj_settings(
     torch_compile["mode"] = choice(
         torch_compile.get("mode"),
         ("default", "max-autotune", "max-autotune-no-cudagraphs", "reduce-overhead"),
-        "max-autotune-no-cudagraphs",
+        "default",
     )
     torch_compile["dynamic"] = choice(
-        torch_compile.get("dynamic"), ("auto", "true", "false"), "false"
+        torch_compile.get("dynamic"), ("auto", "true", "false"), "auto"
     )
     torch_compile["compile_transformer_blocks_only"] = as_bool(
         torch_compile.get("compile_transformer_blocks_only"), True
@@ -260,7 +264,7 @@ def _normalize_kj_settings(
         torch_compile.get("debug_compile_keys"), False
     )
     torch_compile["disable_dynamic_vram"] = as_bool(
-        torch_compile.get("disable_dynamic_vram"), True
+        torch_compile.get("disable_dynamic_vram"), False
     )
 
 
@@ -272,6 +276,11 @@ def normalize_model_settings(
     as_int: ValueHelper,
     choice: ValueHelper,
 ) -> None:
+    if settings.get("model_family") == "moss_image":
+        bank = settings.setdefault("model_settings", {})
+        if not isinstance(bank, dict):
+            raise ValueError("[EasyUseAnima] model_settings must be an object.")
+        bank["moss_image"] = normalize_moss_settings(bank.get("moss_image"))
     model_patches = settings.setdefault("model_patches", {})
     if not isinstance(model_patches, dict):
         model_patches = {}

@@ -20,9 +20,9 @@
   "module_exceptions": [
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
-      "baseline_loc": 849,
+      "baseline_loc": 868,
       "owner_issue": 188,
-      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams. Issue #679 adds one injected cleanup callback line; safe ResShift model loading lives in its own adapter. MOSS adds profile validation calls and a model-specific latent callback; policy remains in model_profiles.py."
+      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams. MOSS prompt preparation adds adapter calls around resource loading and conditioning, plus effective-prompt metadata. All SLG, layout and text generation policy lives in moss_features.py; preserve Anima ordering and error cleanup."
     },
     {
       "path": "easyuse_anima/bootstrap.py",
@@ -66,9 +66,9 @@
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
       "qualified_name": "_run_aio_generation_pipeline",
-      "baseline_loc": 383,
+      "baseline_loc": 400,
       "owner_issue": 188,
-      "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order. MOSS adds five profile/validation lines and three latent-callback binding lines, without inline model policy."
+      "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order. MOSS adds adapter calls for pre-load validation, prompt generation before CLIP patches, exact text encoding and effective-prompt metadata. Feature policy stays in moss_features.py; focused pipeline tests cover source text, cache and metadata."
     },
     {
       "path": "easyuse_anima/aio/legacy_upscale.py",
@@ -87,9 +87,9 @@
     {
       "path": "easyuse_anima/aio/torch_compile_recommendation.py",
       "qualified_name": "recommend_torch_compile",
-      "baseline_loc": 124,
+      "baseline_loc": 131,
       "owner_issue": 188,
-      "decomposition_boundary": "Keep recommendation precedence together unless rule groups gain direct table-driven ownership tests."
+      "decomposition_boundary": "Keep recommendation precedence together unless rule groups gain direct table-driven ownership tests. The additive provider check keeps KJ recommendations from rewriting another compiler's controls; tested alongside model-specific token-shape classification."
     },
     {
       "path": "easyuse_anima/bootstrap.py",
